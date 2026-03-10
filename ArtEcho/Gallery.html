@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArtEcho | 個人畫廊</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="CSS/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="CSS/styles.css">
+  <style>
+    /* === 資料夾列表 === */
+    .folder-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .folder-card {
+      border: 1.5px solid var(--line);
+      border-radius: 20px;
+      background: linear-gradient(145deg, #fffdf8, #faf3e6);
+      padding: 0;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      position: relative;
+    }
+
+    .folder-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px -10px var(--shadow);
+    }
+
+    .folder-cover {
+      position: relative;
+      height: 160px;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--moss), rgba(47, 93, 79, 0.75));
+    }
+
+    .folder-cover-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      width: 100%;
+      height: 100%;
+    }
+
+    .folder-cover-grid img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.85;
+    }
+
+    .folder-cover-single {
+      width: 100%;
+      height: 100%;
+    }
+
+    .folder-cover-single img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.85;
+    }
+
+    .folder-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.55);
+      color: white;
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      backdrop-filter: blur(4px);
+    }
+
+    .folder-icon {
+      position: absolute;
+      bottom: 10px;
+      left: 12px;
+      font-size: 1.6rem;
+      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
+    }
+
+    .folder-info {
+      padding: 14px 16px;
+    }
+
+    .folder-info h3 {
+      font-family: "Noto Serif TC", serif;
+      font-size: 1.1rem;
+      margin: 0 0 6px;
+      color: var(--ink);
+    }
+
+    .folder-info p {
+      font-size: 0.85rem;
+      color: #5a6b6a;
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .progress-bar {
+      height: 4px;
+      background: rgba(0, 0, 0, 0.06);
+      border-radius: 2px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--moss), var(--terracotta));
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+
+    /* === 詳細頁面（故事內頁） === */
+    .detail-view {
+      display: none;
+    }
+
+    .detail-view.active {
+      display: block;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fffaf2;
+      color: var(--ink);
+      padding: 8px 16px;
+      font-size: 0.92rem;
+      cursor: pointer;
+      margin-bottom: 16px;
+      transition: background 0.2s;
+    }
+
+    .back-btn:hover {
+      background: rgba(232, 214, 181, 0.35);
+    }
+
+    .detail-header {
+      text-align: center;
+      padding: 28px 20px;
+      background: linear-gradient(120deg, rgba(47, 93, 79, 0.92), rgba(31, 67, 58, 0.94));
+      color: #fdf8ef;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .detail-header h2 {
+      font-family: "Noto Serif TC", serif;
+      font-size: 1.5rem;
+      margin: 0 0 6px;
+    }
+
+    .detail-header p {
+      font-size: 0.9rem;
+      margin: 0;
+      opacity: 0.85;
+    }
+
+    .chapter-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .chapter-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fffdf8;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      min-height: 180px;
+    }
+
+    .chapter-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .chapter-body {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .chapter-body h3 {
+      font-family: "Noto Serif TC", serif;
+      font-size: 1.05rem;
+      color: var(--ink);
+      margin: 0;
+    }
+
+    .chapter-body .chapter-subtitle {
+      font-size: 0.82rem;
+      color: #7a8886;
+      margin: 0 0 4px;
+    }
+
+    .chapter-download {
+      margin-top: auto;
+    }
+
+    @media (max-width: 620px) {
+      .chapter-card {
+        grid-template-columns: 1fr;
+      }
+
+      .chapter-card img {
+        height: 150px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-shell">
+    <header class="site-header reveal">
+      <nav class="nav-wrap" aria-label="主要導覽">
+        <a class="brand" href="index.html"><span class="brand-dot" aria-hidden="true"></span>ArtEcho</a>
+        <div class="nav-links">
+            <a class="nav-btn" href="index.html">主頁</a>
+            <a class="nav-btn active" href="Gallery.html">個人畫廊</a>
+            <a class="nav-btn" href="Story.html">劇情繪畫</a>
+            <a class="nav-btn " href="Cloud_space.html">雲端畫廊</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel reveal delay-1">
+        <h1 class="page-title">個人的畫廊</h1>
+        <p class="page-subtitle">這裡收藏你在作畫空間留下的每一份情緒筆觸。你可以回看每一天的畫作，觀察自己在色彩、線條與節奏上的變化。</p>
+
+        <div class="gallery-actions">
+          <a class="btn" href="Studio.html">前往作畫空間</a>
+          <button class="btn warn" id="clearAllBtn" type="button">清空所有作品</button>
+        </div>
+
+        <!-- ====== 資料夾主畫面 ====== -->
+        <div id="folderView">
+          <div id="folderGrid" class="folder-grid"></div>
+        </div>
+
+        <!-- ====== 故事詳細頁 ====== -->
+        <div id="detailView" class="detail-view">
+          <button class="back-btn" id="backBtn">← 返回畫廊</button>
+          <div class="detail-header" id="detailHeader">
+            <h2 id="detailTitle"></h2>
+            <p id="detailSubtitle"></p>
+          </div>
+
+          <!-- 該故事的趨勢圖 -->
+          <div id="storyTrendSection" class="trend-charts" style="display:none;">
+            <div class="chart-card">
+              <h3>覆蓋率趨勢 (%)</h3><canvas id="sCoverageChart"></canvas>
+            </div>
+            <div class="chart-card">
+              <h3>暖色比例趨勢 (%)</h3><canvas id="sWarmChart"></canvas>
+            </div>
+            <div class="chart-card">
+              <h3>筆劃數量趨勢</h3><canvas id="sStrokeChart"></canvas>
+            </div>
+            <div class="chart-card">
+              <h3>偵測物件數量</h3><canvas id="sShapeChart"></canvas>
+            </div>
+          </div>
+
+          <!-- 章節作品清單 -->
+          <div id="chapterList" class="chapter-list"></div>
+        </div>
+        <div id="galleryGrid" class="gallery-grid" aria-live="polite"></div>
+        <div id="emptyState" class="empty-state" hidden>
+          <h3>目前還沒有作品</h3>
+          <p>先到作畫空間畫一張，完成後按下「儲存到畫廊」，作品就會出現在這個地方。</p>
+          <a class="btn" href="Studio.html">立刻開始作畫</a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const storageKey = "artEchoGallery";
+    const emptyState = document.getElementById("emptyState");
+    const folderView = document.getElementById("folderView");
+    const folderGrid = document.getElementById("folderGrid");
+    const detailView = document.getElementById("detailView");
+    const clearAllBtn = document.getElementById("clearAllBtn");
+
+    // 故事中文名稱對照表
+    const storyNames = {
+      snow_white: "白雪公主",
+    };
+    const chapterTitles = {
+      "1": "第一章", "2": "第二章", "3": "第三章", "4": "第四章"
+    };
+
+    let chartInstances = [];
+
+    function getWorks() {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    /** 按故事分組 */
+    function groupByStory(works) {
+      const groups = {};
+      for (const w of works) {
+        const sid = w.storyId || "unknown";
+        if (!groups[sid]) groups[sid] = [];
+        groups[sid].push(w);
+      }
+      return groups;
+    }
+
+    /** 為舊資料補名稱 */
+    function fallbackName(work, idx) {
+      if (work.name && work.name.trim()) return work.name;
+      const warmWords = ['柔和的', '微光中的', '沉靜的'];
+      const themeWords = ['夢境', '餘韻', '心情'];
+      const pick = (arr) => arr[idx % arr.length];
+      return `${pick(warmWords)}${pick(themeWords)}`;
+    }
+
+    /** 為舊資料補形狀 */
+    function fallbackShapes(work) {
+      if (work.shapes && work.shapes.length > 0) return work.shapes;
+      return [{ type: 'freeform', label: '🌊 自由風格' }];
+    }
+    /* ============ 資料夾主路面 ============ */
+    function renderFolders() {
+      const works = getWorks();
+      folderGrid.innerHTML = "";
+      detailView.classList.remove("active");
+      folderView.style.display = "block";
+
+      if (works.length === 0) {
+        emptyState.hidden = false;
+        folderView.style.display = "none";
+        return;
+      }
+      emptyState.hidden = true;
+
+      const groups = groupByStory(works);
+
+      for (const [storyId, storyWorks] of Object.entries(groups)) {
+        const card = document.createElement("div");
+        card.className = "folder-card";
+
+        // 封面用最多 4 張圖拼
+        const coverDiv = document.createElement("div");
+        coverDiv.className = "folder-cover";
+
+        const thumbs = storyWorks.slice(-4);
+        if (thumbs.length === 1) {
+          const wrap = document.createElement("div");
+          wrap.className = "folder-cover-single";
+          const img = document.createElement("img");
+          img.src = thumbs[0].dataUrl;
+          img.alt = "";
+          wrap.appendChild(img);
+          coverDiv.appendChild(wrap);
+        } else {
+          const grid = document.createElement("div");
+          grid.className = "folder-cover-grid";
+          for (const t of thumbs) {
+            const img = document.createElement("img");
+            img.src = t.dataUrl;
+            img.alt = "";
+            grid.appendChild(img);
+          }
+          coverDiv.appendChild(grid);
+        }
+
+        // 數量 badge
+        const badge = document.createElement("span");
+        badge.className = "folder-badge";
+        badge.textContent = `${storyWorks.length} 幅作品`;
+        coverDiv.appendChild(badge);
+
+        const icon = document.createElement("span");
+        icon.className = "folder-icon";
+        icon.textContent = "📁";
+        coverDiv.appendChild(icon);
+
+        // 文字區
+        const info = document.createElement("div");
+        info.className = "folder-info";
+
+        const title = document.createElement("h3");
+        title.textContent = storyNames[storyId] || storyId;
+        info.appendChild(title);
+
+        const desc = document.createElement("p");
+        const levels = [...new Set(storyWorks.map(w => w.level))];
+        desc.textContent = `已完成章節：${levels.sort().map(l => chapterTitles[l] || `第${l}章`).join('、')}`;
+        info.appendChild(desc);
+
+        // 進度條
+        const bar = document.createElement("div");
+        bar.className = "progress-bar";
+        const fill = document.createElement("div");
+        fill.className = "progress-fill";
+        fill.style.width = `${Math.min(100, (levels.length / 4) * 100)}%`;
+        bar.appendChild(fill);
+        info.appendChild(bar);
+
+        card.appendChild(coverDiv);
+        card.appendChild(info);
+        card.onclick = () => openStoryDetail(storyId, storyWorks);
+        folderGrid.appendChild(card);
+      }
+    }
+
+    /* ============ 故事詳細頁 ============ */
+    function openStoryDetail(storyId, storyWorks) {
+      folderView.style.display = "none";
+      detailView.classList.add("active");
+
+      // header
+      document.getElementById("detailTitle").textContent = `${storyNames[storyId] || storyId}`;
+      const levels = [...new Set(storyWorks.map(w => w.level))];
+      document.getElementById("detailSubtitle").textContent =
+              `共 ${storyWorks.length} 幅作品 · 已探索 ${levels.length}/4 章節`;
+
+      // charts
+      destroyCharts();
+      renderStoryCharts(storyWorks);
+
+      // chapter cards
+      const list = document.getElementById("chapterList");
+      list.innerHTML = "";
+
+      // sort by level then by time
+      const sorted = storyWorks.slice().sort((a, b) => {
+        if (a.level !== b.level) return a.level - b.level;
+        return (a.id || 0) - (b.id || 0);
+      });
+
+      sorted.forEach((work, idx) => {
+        const card = document.createElement("div");
+        card.className = "chapter-card";
+
+        // 畫作圖片
+        const img = document.createElement("img");
+        img.src = work.dataUrl;
+        img.alt = work.name || "作品";
+
+        // 資訊區
+        const body = document.createElement("div");
+        body.className = "chapter-body";
+
+        const chTitle = document.createElement("h3");
+        chTitle.textContent = fallbackName(work, idx);
+        body.appendChild(chTitle);
+
+        const chSub = document.createElement("p");
+        chSub.className = "chapter-subtitle";
+        chSub.textContent = `${chapterTitles[work.level] || '第' + work.level + '章'}`;
+        const time = new Date(work.id || work.createdAt);
+        if (!isNaN(time.getTime())) {
+          chSub.textContent += ` · ${time.toLocaleString("zh-Hant-TW", { hour12: false })}`;
+        }
+        body.appendChild(chSub);
+
+        // 形狀標籤
+        const tagsEl = document.createElement("div");
+        tagsEl.className = "shape-tags";
+        for (const s of fallbackShapes(work)) {
+          const badge = document.createElement("span");
+          badge.className = "shape-badge";
+          badge.textContent = s.label;
+          tagsEl.appendChild(badge);
+        }
+        body.appendChild(tagsEl);
+
+        // 數據行
+        if (work.stats) {
+          const sw = document.createElement("div");
+          sw.innerHTML = `
+            <div class="stat-row"><span>覆蓋率</span><span>${work.stats.coverage}%</span></div>
+            <div class="stat-row"><span>暖色佔比</span><span>${work.stats.warmRatio}%</span></div>
+            <div class="stat-row"><span>筆劃數</span><span>${work.stats.strokeCount} 劃</span></div>
+          `;
+          body.appendChild(sw);
+        }
+
+        // 下載
+        const dl = document.createElement("a");
+        dl.className = "btn chapter-download";
+        dl.href = work.dataUrl;
+        dl.download = `artecho-${work.name || work.id || Date.now()}.png`;
+        dl.textContent = "下載作品";
+        body.appendChild(dl);
+
+        card.appendChild(img);
+        card.appendChild(body);
+        list.appendChild(card);
+      });
+    }
+
+    /* ============ 故事內頁趨勢圖 ============ */
+    function renderStoryCharts(works) {
+      const section = document.getElementById("storyTrendSection");
+      if (works.length < 2) {
+        section.style.display = "none";
+        return;
+      }
+      section.style.display = "grid";
+
+      const sorted = works.slice().sort((a, b) => (a.level || 0) - (b.level || 0));
+      const labels = sorted.map(w => chapterTitles[w.level] || `第${w.level}章`);
+      const cov = sorted.map(w => w.stats ? parseFloat(w.stats.coverage) : 0);
+      const warm = sorted.map(w => w.stats ? parseFloat(w.stats.warmRatio) : 0);
+      const strk = sorted.map(w => w.stats ? parseInt(w.stats.strokeCount) : 0);
+      const shp = sorted.map(w => (w.shapes && w.shapes.length) ? w.shapes.length : 0);
+
+      const opt = {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } },
+          x: { grid: { display: false } }
+        },
+        elements: { line: { tension: 0.35 }, point: { radius: 5, hoverRadius: 7 } }
+      };
+
+      chartInstances.push(new Chart(document.getElementById('sCoverageChart'), {
+        type: 'line',
+        data: { labels, datasets: [{ data: cov, borderColor: '#2f5d4f', backgroundColor: 'rgba(47,93,79,0.08)', fill: true, borderWidth: 2 }] },
+        options: opt
+      }));
+      chartInstances.push(new Chart(document.getElementById('sWarmChart'), {
+        type: 'bar',
+        data: { labels, datasets: [{ data: warm, backgroundColor: 'rgba(198,107,61,0.6)', borderColor: '#c66b3d', borderWidth: 1, borderRadius: 6 }] },
+        options: opt
+      }));
+      chartInstances.push(new Chart(document.getElementById('sStrokeChart'), {
+        type: 'line',
+        data: { labels, datasets: [{ data: strk, borderColor: '#dcc9a7', backgroundColor: 'rgba(220,201,167,0.12)', fill: true, borderWidth: 2, borderDash: [5, 3] }] },
+        options: opt
+      }));
+      chartInstances.push(new Chart(document.getElementById('sShapeChart'), {
+        type: 'line',
+        data: { labels, datasets: [{ data: shp, borderColor: '#7a5ea7', backgroundColor: 'rgba(122,94,167,0.08)', fill: true, borderWidth: 2 }] },
+        options: opt
+      }));
+    }
+
+    function destroyCharts() {
+      chartInstances.forEach(c => c.destroy());
+      chartInstances = [];
+    }
+    /* ============ 事件綁定 ============ */
+    document.getElementById("backBtn").onclick = () => {
+      destroyCharts();
+      renderFolders();
+    };
+
+    clearAllBtn.addEventListener("click", () => {
+      if (!confirm("確定要清空所有畫廊作品嗎？此操作無法復原。")) return;
+      localStorage.removeItem(storageKey);
+      destroyCharts();
+      renderFolders();
+    });
+
+    renderFolders();
+  </script>
+</body>
+</html>
