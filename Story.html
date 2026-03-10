@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArtEcho | 劇情選擇</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="CSS/styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header reveal">
+      <nav class="nav-wrap" aria-label="主要導覽">
+        <a class="brand" href="index.html"><span class="brand-dot" aria-hidden="true"></span>ArtEcho</a>
+        <div class="nav-links">
+            <a class="nav-btn" href="index.html">主頁</a>
+            <a class="nav-btn" href="Gallery.html">個人畫廊</a>
+            <a class="nav-btn active" href="Story.html">劇情繪畫</a>
+            <a class="nav-btn " href="Cloud_space.html">雲端畫廊</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel reveal delay-1">
+        <h1 class="page-title">選擇繪圖劇情</h1>
+        <p class="page-subtitle">選擇一個情境故事，進入作畫空間描繪你當下的感受與情緒。每個劇情都是一次自我對話的機會。</p>
+
+        <div id="scenarioGrid" class="scenario-grid" aria-live="polite"></div>
+      </section>
+    </main>
+  </div>
+
+<script src="js/Story.js"></script>
+</body>
+</html>
