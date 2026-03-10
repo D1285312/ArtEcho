@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ArtEcho | 個人畫廊</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="CSS/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="CSS/styles.css">
   <style>
@@ -238,10 +236,10 @@
       <nav class="nav-wrap" aria-label="主要導覽">
         <a class="brand" href="index.html"><span class="brand-dot" aria-hidden="true"></span>ArtEcho</a>
         <div class="nav-links">
-          <a class="nav-btn" href="index.html">主頁</a>
-          <a class="nav-btn active" href="Gallery.html">個人畫廊</a>
-          <a class="nav-btn" href="Studio.html">作畫空間</a>
-          <a class="nav-btn" href="AnalysisSummary.html">分析總結</a>
+            <a class="nav-btn" href="index.html">主頁</a>
+            <a class="nav-btn active" href="Gallery.html">個人畫廊</a>
+            <a class="nav-btn" href="Story.html">劇情繪畫</a>
+            <a class="nav-btn " href="Cloud_space.html">雲端畫廊</a>
         </div>
       </nav>
     </header>
@@ -249,7 +247,7 @@
     <main>
       <section class="panel reveal delay-1">
         <h1 class="page-title">個人的畫廊</h1>
-        <p class="page-subtitle">這裡收藏你在作畫空間留下的每一份情緒筆觸。點進故事資料夾，回看每一個章節的畫作與分析。</p>
+        <p class="page-subtitle">這裡收藏你在作畫空間留下的每一份情緒筆觸。你可以回看每一天的畫作，觀察自己在色彩、線條與節奏上的變化。</p>
 
         <div class="gallery-actions">
           <a class="btn" href="Studio.html">前往作畫空間</a>
@@ -288,7 +286,7 @@
           <!-- 章節作品清單 -->
           <div id="chapterList" class="chapter-list"></div>
         </div>
-
+        <div id="galleryGrid" class="gallery-grid" aria-live="polite"></div>
         <div id="emptyState" class="empty-state" hidden>
           <h3>目前還沒有作品</h3>
           <p>先到作畫空間畫一張，完成後按下「儲存到畫廊」，作品就會出現在這個地方。</p>
@@ -309,7 +307,6 @@
     // 故事中文名稱對照表
     const storyNames = {
       snow_white: "白雪公主",
-      little_red: "小紅帽",
     };
     const chapterTitles = {
       "1": "第一章", "2": "第二章", "3": "第三章", "4": "第四章"
@@ -327,7 +324,6 @@
         return [];
       }
     }
-
     /** 按故事分組 */
     function groupByStory(works) {
       const groups = {};
@@ -353,7 +349,6 @@
       if (work.shapes && work.shapes.length > 0) return work.shapes;
       return [{ type: 'freeform', label: '🌊 自由風格' }];
     }
-
     /* ============ 資料夾主路面 ============ */
     function renderFolders() {
       const works = getWorks();
@@ -448,7 +443,7 @@
       document.getElementById("detailTitle").textContent = `${storyNames[storyId] || storyId}`;
       const levels = [...new Set(storyWorks.map(w => w.level))];
       document.getElementById("detailSubtitle").textContent =
-        `共 ${storyWorks.length} 幅作品 · 已探索 ${levels.length}/4 章節`;
+              `共 ${storyWorks.length} 幅作品 · 已探索 ${levels.length}/4 章節`;
 
       // charts
       destroyCharts();
@@ -578,7 +573,6 @@
       chartInstances.forEach(c => c.destroy());
       chartInstances = [];
     }
-
     /* ============ 事件綁定 ============ */
     document.getElementById("backBtn").onclick = () => {
       destroyCharts();
@@ -595,5 +589,4 @@
     renderFolders();
   </script>
 </body>
-
 </html>
