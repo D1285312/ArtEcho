@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArtEcho | 完整互動繪圖空間</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="CSS/styles.css">
+  <style>
+    /* 核心 UI 樣式 */
+    .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; font-weight: 700; }
+    .brand-dot { width: 12px; height: 12px; background-color: #dcc9a7; border-radius: 50%; display: inline-block; }
+    .scenario-container { background: var(--moss); color: white; border-radius: 18px; margin-bottom: 24px; display: flex; overflow: hidden; max-height: 220px; }
+    .scenario-img { width: 40%; height: 220px; object-fit: cover; border-right: 4px solid var(--terracotta); }
+    .scenario-text { padding: 18px 24px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .brush-type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+    .brush-opt { padding: 10px 5px; border: 1px solid var(--line); border-radius: 12px; background: white; cursor: pointer; text-align: center; font-size: 0.85rem; transition: 0.2s; color: var(--moss); }
+    .brush-opt.active { background: var(--moss); color: white; border-color: var(--moss); }
+    .brush-opt span { display: block; font-size: 1.2rem; margin-bottom: 4px; }
+    .color-input-wrapper { border: 1.5px solid var(--moss); border-radius: 8px; padding: 4px; display: flex; background: white; margin-bottom: 15px; }
+    #colorPicker { width: 100%; height: 35px; cursor: pointer; border: none; background: none; }
+    .brush-size-row { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+    #brushSizeText { min-width: 45px; text-align: right; }
+    .icon-btn { display: flex; align-items: center; justify-content: center; padding: 8px; min-width: 45px; cursor: pointer; transition: 0.2s; }
+    .active-mode { background-color: var(--terracotta) !important; color: white !important; }
+    .canvas-wrap { width: 100%; min-height: 500px; display: flex; position: relative; }
+    #paintCanvas { width: 100%; flex-grow: 1; cursor: crosshair; touch-action: none; background-color: #fffdfa; }
+    .playback-overlay { position: absolute; top: 15px; left: 15px; background: rgba(26, 34, 41, 0.8); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; display: none; pointer-events: none; z-index: 10; }
+    .analysis-panel { margin-top: 15px; padding: 15px; border-radius: 18px; background: rgba(47, 93, 79, 0.05); border: 1px dashed var(--moss); }
+    .analysis-item { font-size: 0.95rem; color: var(--moss); margin-bottom: 8px; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 5px; }
+
+    /* AI 對話框與 Loading 動畫 */
+    .ai-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .ai-box { background: white; padding: 25px; border-radius: 24px; width: 90%; max-width: 550px; display: flex; flex-direction: column; max-height: 85vh; }
+    .chat-history { flex: 1; overflow-y: auto; margin-bottom: 20px; padding: 10px; border: 1px solid #f0f0f0; border-radius: 12px; display: flex; flex-direction: column; }
+    .msg { margin-bottom: 15px; padding: 10px 15px; border-radius: 15px; line-height: 1.5; font-size: 0.95rem; word-wrap: break-word; max-width: 80%; }
+    .msg-ai { background: rgba(47, 93, 79, 0.1); color: var(--moss); align-self: flex-start; }
+    .msg-user { background: var(--moss); color: white; align-self: flex-end; }
+    .ai-input-row { display: flex; gap: 8px; }
+    .ai-input { flex: 1; padding: 12px; border: 1.5px solid var(--line); border-radius: 12px; font-size: 1rem; resize: none; height: 50px; }
+    .dots-loader { display: flex; align-items: center; gap: 4px; padding: 4px 0; }
+    .dot { width: 6px; height: 6px; background: var(--moss); border-radius: 50%; opacity: 0.3; animation: dotPulse 1.4s infinite; }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotPulse {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="aiModal" class="ai-modal">
+  <div class="ai-box">
+    <h3 style="margin-bottom:15px; font-family:'Noto Serif TC', serif;">🤖 ArtEcho 心理引導</h3>
+    <div id="chatHistory" class="chat-history"></div>
+    <div class="ai-input-row">
+      <textarea id="aiUserResponse" class="ai-input" placeholder="回覆 AI 的引導..."></textarea>
+      <button class="cta-btn primary" id="sendMsgBtn" style="padding: 0 20px;">傳送</button>
+    </div>
+    <button class="cta-btn" id="finishChapterBtn" style="margin-top:15px; font-size:0.85rem; text-decoration:underline; background:none; border:none; cursor:pointer; color:var(--ink);">結束對話並前往下一章</button>
+  </div>
+</div>
+
+<div class="page-shell">
+  <header class="site-header">
+    <nav class="nav-wrap">
+      <a class="brand" href="index.html"><span class="brand-dot"></span>ArtEcho</a>
+      <div class="nav-links">
+        <a class="nav-btn" href="index.html">主頁</a>
+        <a class="nav-btn" href="Gallery.html">個人畫廊</a>
+        <a class="nav-btn active" href="Studio.html">作畫空間</a>
+        <a class="nav-btn" href="AnalysisSummary.html">分析總結</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="panel">
+    <div class="scenario-container">
+      <img id="scenarioImg" src="" class="scenario-img" alt="情境圖">
+      <div class="scenario-text">
+        <h2 id="scenarioTitle">載入中...</h2>
+        <p id="scenarioDesc">準備故事情節...</p>
+      </div>
+    </div>
+
+    <div class="studio-layout">
+      <div class="canvas-wrap">
+        <canvas id="paintCanvas"></canvas>
+        <div id="playbackIndicator" class="playback-overlay">正在重現筆跡...</div>
+      </div>
+
+      <aside class="toolbar">
+        <h3>🖌️ 畫筆箱</h3>
+        <div class="brush-type-grid" id="brushSelector">
+          <div class="brush-opt active" data-type="marker"><span>🖊️</span>彩色筆</div>
+          <div class="brush-opt" data-type="watercolor"><span>💧</span>水彩筆</div>
+          <div class="brush-opt" data-type="crayon"><span>🖍️</span>蠟筆</div>
+          <div class="brush-opt" data-type="spray"><span>💨</span>噴漆</div>
+          <div class="brush-opt" data-type="oil"><span>🎨</span>油畫筆</div>
+          <div class="brush-opt" data-type="sketch"><span>✏️</span>素描鉛筆</div>
+        </div>
+        <div class="control-group">
+          <label>顏色與粗細</label>
+          <div class="color-input-wrapper"><input id="colorPicker" type="color" value="#2f5d4f"></div>
+          <div class="brush-size-row"><input id="brushSize" type="range" min="1" max="50" value="8"><span id="brushSizeText">8 px</span></div>
+        </div>
+        <div class="control-group">
+          <div style="display:flex; gap:8px; margin-bottom: 15px;">
+            <button class="btn icon-btn active-mode" id="brushBtn"><span class="material-symbols-outlined">edit</span></button>
+            <button class="btn icon-btn" id="eraserBtn"><span class="material-symbols-outlined">ink_eraser</span></button>
+            <button class="btn icon-btn" id="undoBtn"><span class="material-symbols-outlined">undo</span></button>
+            <button class="btn icon-btn" id="playbackBtn"><span class="material-symbols-outlined" id="playbackIcon">play_circle</span></button>
+            <button class="btn icon-btn warn" id="clearBtn"><span class="material-symbols-outlined">delete</span></button>
+          </div>
+        </div>
+        <button class="cta-btn primary" id="analyzeBtn" style="width:100%;">讀取物理數據</button>
+        <div class="analysis-panel" id="analysisDisplay" style="display:none;">
+          <div id="resultsArea"></div>
+          <button class="cta-btn" id="startTalkBtn" style="width:100%; margin-top:15px; background:var(--terracotta); color:white; border:none;">與 AI 聊聊並前往下一章</button>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+  import { AnalysisAPI } from './js/analysisAPI.js';
+  import { GeminiService } from './js/geminiService.js';
+  import { storyLines } from './js/storyData.js';
+  import { BrushEngine } from './js/brushEngine.js';
+  import { StorageManager } from './js/storageManager.js';
+
+  const canvas = document.getElementById("paintCanvas");
+  const ctx = canvas.getContext("2d");
+
+  let drawing = false, isEraser = false, history = [], drawingSteps = [], currentStroke = null;
+  let brushType = 'marker', isPlaying = false, currentStrokeIdx = 0, currentPointIdx = 0, animationId = null;
+  let chatLog = [];
+  let startTime = null;
+
+  function getUrlParam(key, defaultValue) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(key) || defaultValue;
+  }
+
+  // 1. 初始化與故事載入
+  function loadContent() {
+    const storyId = getUrlParam('story', 'snow_white');
+    const level = getUrlParam('level', '1');
+    const data = storyLines[storyId];
+    if (data && data.chapters[level]) {
+      const ch = data.chapters[level];
+      document.getElementById("scenarioTitle").textContent = `${data.name} - ${ch.title}`;
+      document.getElementById("scenarioDesc").textContent = ch.desc;
+      document.getElementById("scenarioImg").src = ch.img;
+    }
+  }
+
+  function initCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width; canvas.height = rect.height;
+    ctx.fillStyle = "#fffdfa"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // 畫筆切換邏輯
+  document.querySelectorAll('.brush-opt').forEach(opt => {
+    opt.onclick = () => {
+      document.querySelector('.brush-opt.active').classList.remove('active');
+      opt.classList.add('active');
+      brushType = opt.dataset.type;
+      isEraser = false;
+      document.getElementById("brushBtn").classList.add("active-mode");
+      document.getElementById("eraserBtn").classList.remove("active-mode");
+    };
+  });
+
+  // 2. 繪圖核心 (呼叫 BrushEngine)
+  canvas.onpointerdown = (e) => {
+    if (isPlaying) stopPlayback();
+    if (!startTime) startTime = Date.now();
+    history.push(canvas.toDataURL());
+    drawing = true;
+    currentStroke = {
+      type: isEraser ? 'marker' : brushType,
+      color: isEraser ? "#fffdfa" : document.getElementById("colorPicker").value,
+      size: parseInt(document.getElementById("brushSize").value),
+      points: [{ x: e.offsetX, y: e.offsetY }]
+    };
+    canvas.setPointerCapture(e.pointerId);
+  };
+
+  canvas.onpointermove = (e) => {
+    if (drawing) {
+      const last = currentStroke.points[currentStroke.points.length-1];
+      const now = { x: e.offsetX, y: e.offsetY };
+      BrushEngine.drawStep(ctx, currentStroke, now, last);
+      currentStroke.points.push(now);
+    }
+  };
+
+  canvas.onpointerup = (e) => {
+    if (drawing) {
+      drawingSteps.push(currentStroke);
+      drawing = false;
+      canvas.releasePointerCapture(e.pointerId);
+    }
+  };
+
+  // 3. AI 對話邏輯 (呼叫 GeminiService 並處理 Markdown)
+  async function callGemini(userInput = "") {
+    const stats = AnalysisAPI.getPhysicalStats(ctx, canvas.width, canvas.height, drawingSteps);
+    const params = new URLSearchParams(window.location.search);
+    const chapter = storyLines[params.get('story') || 'snow_white'].chapters[params.get('level') || '1'];
+
+    const prompt = `你是一位藝術心理導師。情境：${chapter.title}。數據：填滿率${stats.coverage}%、暖色佔${stats.warmRatio}%。請不要稱讚，先請使用者解釋畫作，再提一個開放式問題引導感受，限40字。`;
+
+    GeminiService.call({
+      systemPrompt: prompt,
+      userMessage: userInput,
+      chatHistory: chatLog,
+      onLoading: (isLoading) => {
+        const hist = document.getElementById("chatHistory");
+        if (isLoading) {
+          const div = document.createElement("div");
+          div.className = "msg msg-ai"; div.id = "ai-loading";
+          div.innerHTML = `<div class="dots-loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+          hist.appendChild(div); hist.scrollTop = hist.scrollHeight;
+        } else {
+          const loader = document.getElementById("ai-loading");
+          if (loader) loader.remove();
+        }
+      },
+      onSuccess: (formattedText, rawText) => {
+        chatLog.push({ role: 'ai', text: rawText });
+        appendMsg('ai', formattedText);
+      },
+      onError: (msg) => appendMsg('ai', `⚠️ 系統訊息: ${msg}`)
+    });
+  }
+
+  function appendMsg(role, text) {
+    const h = document.getElementById("chatHistory");
+    const d = document.createElement("div");
+    d.className = `msg msg-${role}`;
+    d.innerHTML = text;
+    h.appendChild(d); h.scrollTop = h.scrollHeight;
+  }
+
+  // 4. 分析與存檔跳轉
+  document.getElementById("analyzeBtn").onclick = () => {
+    // 1. 檢查是否有筆跡數據
+    if (!drawingSteps || drawingSteps.length === 0) {
+      alert("畫布還是空的喔！請先畫些東西再進行分析。");
+      return;
+    }
+
+    // 2. 顯示分析面板
+    document.getElementById("analysisDisplay").style.display = "block";
+
+    // 3. 獲取完整數據
+    const stats = AnalysisAPI.getPhysicalStats(ctx, canvas.width, canvas.height, drawingSteps);
+
+    // 4. 數據欄位
+    document.getElementById("resultsArea").innerHTML = `
+    <div class="analysis-item"><span>畫布填滿面積</span><span>${stats.coverage}%</span></div>
+    <div class="analysis-item"><span>暖色像素佔比</span><span>${stats.warmRatio}%</span></div>
+    <div class="analysis-item"><span>冷色像素佔比</span><span>${stats.coolRatio}%</span></div>
+    <div class="analysis-item"><span>空間重心 (左側)</span><span>${stats.leftWeight}%</span></div>
+    <div class="analysis-item"><span>筆路徑數量</span><span>${stats.strokeCount} 劃</span></div>
+  `;
+  };
+
+  document.getElementById("finishChapterBtn").onclick = () => {
+    const storyId = getUrlParam('story', 'snow_white');
+    const level = parseInt(getUrlParam('level', '1'));
+    const stats = AnalysisAPI.getPhysicalStats(ctx, canvas.width, canvas.height, drawingSteps);
+    const shapeResult = AnalysisAPI.detectShapes(ctx, canvas.width, canvas.height);
+    const autoName = AnalysisAPI.generateName(stats, shapeResult);
+
+    StorageManager.saveWork({
+      storyId, level, stats, chatLog, startTime,
+      dataUrl: canvas.toDataURL(),
+      name: autoName,
+      shapes: shapeResult.shapes
+    });
+
+    if (level < 4) {
+      window.location.href = `Studio.html?story=${storyId}&level=${level + 1}`;
+    } else {
+      window.location.href = "AnalysisSummary.html";
+    }
+  };
+
+  // 5. 控制與重播邏輯
+  function playNext() {
+    if (!isPlaying || currentStrokeIdx >= drawingSteps.length) {
+      if (currentStrokeIdx >= drawingSteps.length) stopPlayback(true);
+      return;
+    }
+    const s = drawingSteps[currentStrokeIdx];
+    if (currentPointIdx > 0) BrushEngine.drawStep(ctx, s, s.points[currentPointIdx], s.points[currentPointIdx-1]);
+    currentPointIdx++;
+    if (currentPointIdx >= s.points.length) { currentStrokeIdx++; currentPointIdx = 0; }
+    animationId = requestAnimationFrame(playNext);
+  }
+
+  function startPlayback() {
+    if ((currentStrokeIdx === 0 && currentPointIdx === 0) || currentStrokeIdx >= drawingSteps.length) {
+      ctx.fillStyle = "#fffdfa"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      currentStrokeIdx = 0; currentPointIdx = 0;
+    }
+    isPlaying = true;
+    document.getElementById("playbackIcon").textContent = "pause_circle";
+    document.getElementById("playbackIndicator").style.display = "block";
+    playNext();
+  }
+
+  function stopPlayback(f = false) { isPlaying = false; cancelAnimationFrame(animationId); document.getElementById("playbackIcon").textContent = "play_circle"; if (f) document.getElementById("playbackIndicator").style.display = "none"; }
+  document.getElementById("playbackBtn").onclick = () => { if (drawingSteps.length === 0) return; isPlaying ? stopPlayback() : startPlayback(); };
+  document.getElementById("undoBtn").onclick = () => {
+    let last = history.pop();
+    if (last) {
+      let img = new Image();
+      img.onload = () => { ctx.fillStyle = "#fffdfa"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0); };
+      img.src = last;
+      if (drawingSteps.length > 0) drawingSteps.pop();
+    }
+  };
+  document.getElementById("clearBtn").onclick = () => { if(confirm("確定清空？")) { initCanvas(); drawingSteps = []; history = []; startTime = null; document.getElementById("analysisDisplay").style.display = "none"; }};
+  document.getElementById("brushSize").oninput = (e) => { document.getElementById("brushSizeText").textContent = `${e.target.value} px`; };
+  document.getElementById("brushBtn").onclick = () => { isEraser = false; document.getElementById("brushBtn").classList.add("active-mode"); document.getElementById("eraserBtn").classList.remove("active-mode"); };
+  document.getElementById("eraserBtn").onclick = () => { isEraser = true; document.getElementById("eraserBtn").classList.add("active-mode"); document.getElementById("brushBtn").classList.remove("active-mode"); };
+  document.getElementById("startTalkBtn").onclick = () => { document.getElementById("aiModal").style.display = "flex"; document.getElementById("chatHistory").innerHTML = ""; callGemini(""); };
+  document.getElementById("sendMsgBtn").onclick = () => {
+    const input = document.getElementById("aiUserResponse");
+    const text = input.value.trim(); if (!text) return;
+    appendMsg('user', text); chatLog.push({ role: 'user', text: text });
+    input.value = ""; callGemini(text);
+  };
+
+  window.onload = () => { initCanvas(); loadContent(); };
+</script>
+</body>
+</html>

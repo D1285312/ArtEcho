@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArtEcho | 故事創作總結</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="CSS/styles.css">
+    <style>
+        .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; font-weight: 700; }
+        .brand-dot { width: 12px; height: 12px; background-color: #dcc9a7; border-radius: 50%; display: inline-block; }
+        .summary-header { text-align: center; padding: 40px 0; background: var(--moss); color: white; border-radius: 24px; margin-bottom: 30px; }
+        .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 40px; }
+        .chart-card { background: white; padding: 20px; border-radius: 20px; border: 1.5px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .mini-gallery { display: flex; gap: 10px; justify-content: center; margin-top: 30px; overflow-x: auto; }
+        .mini-item { flex: 0 0 120px; text-align: center; font-size: 0.8rem; }
+        .mini-item img { width: 100%; border-radius: 8px; border: 1px solid var(--line); margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+<div class="page-shell">
+    <header class="site-header">
+        <nav class="nav-wrap">
+            <a class="brand" href="index.html"><span class="brand-dot"></span>ArtEcho</a>
+            <div class="nav-links">
+                <a class="nav-btn" href="index.html">主頁</a>
+                <a class="nav-btn" href="Gallery.html">個人畫廊</a>
+                <a class="nav-btn" href="Studio.html">作畫空間</a>
+                <a class="nav-btn active" href="AnalysisSummary.html">分析總結</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="panel">
+        <div class="summary-header">
+            <h1>🎨 故事創作完整紀錄</h1>
+            <p>這是一段關於筆觸與情感交織的旅程，來看看你的創作軌跡。</p>
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart-card"><h3>畫布填滿面積趨勢 (%)</h3><canvas id="coverageChart"></canvas></div>
+            <div class="chart-card"><h3>暖色比例變化 (%)</h3><canvas id="warmRatioChart"></canvas></div>
+            <div class="chart-card"><h3>章節筆劃密集度</h3><canvas id="strokeChart"></canvas></div>
+        </div>
+
+        <div class="mini-gallery" id="miniGallery"></div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <button class="cta-btn primary" onclick="location.href='Gallery.html'">前往個人畫廊</button>
+            <button class="btn" style="margin-left:10px;" onclick="location.href='index.html'">回到主頁</button>
+        </div>
+    </main>
+</div>
+
+<script>
+    window.onload = () => {
+        const works = JSON.parse(localStorage.getItem("artEchoGallery") || "[]");
+        const levelData = {};
+        works.forEach(w => { levelData[w.level] = w; });
+
+        const levels = ["1", "2", "3", "4"];
+        const labels = ["第一章", "第二章", "第三章", "第四章"];
+        const getVal = (l, key) => levelData[l] ? parseFloat(levelData[l].stats[key]) : 0;
+
+        const coverageData = levels.map(l => getVal(l, 'coverage'));
+        const warmData = levels.map(l => getVal(l, 'warmRatio'));
+        const strokeData = levels.map(l => getVal(l, 'strokeCount'));
+
+        const gallery = document.getElementById("miniGallery");
+        levels.forEach(l => { if(levelData[l]) { gallery.innerHTML += `<div class="mini-item"><img src="${levelData[l].dataUrl}"><span>第 ${l} 章</span></div>`; } });
+
+        const opt = { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } };
+        new Chart(document.getElementById('coverageChart'), { type: 'line', data: { labels, datasets: [{ data: coverageData, borderColor: '#2f5d4f', fill: true, backgroundColor: 'rgba(47, 93, 79, 0.1)' }] }, options: opt });
+        new Chart(document.getElementById('warmRatioChart'), { type: 'bar', data: { labels, datasets: [{ data: warmData, backgroundColor: '#d16e51' }] }, options: opt });
+        new Chart(document.getElementById('strokeChart'), { type: 'line', data: { labels, datasets: [{ data: strokeData, borderColor: '#dcc9a7', borderDash: [5,5] }] }, options: opt });
+    };
+</script>
+</body>
+</html>
