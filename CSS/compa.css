@@ -1,0 +1,793 @@
+/* ==========================================================================
+   1. 全域變數與基礎設定 (Root & Global)
+   ========================================================================== */
+:root {
+    --paper: #f6efe3;
+    --ink: #1a2229;
+    --moss: #2f5d4f;
+    --terracotta: #c66b3d;
+    --sand: #e8d6b5;
+    --mist: #f9f3ea;
+    --line: #dcc9a7;
+    --shadow: rgba(26, 34, 41, 0.14);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    color: var(--ink);
+    background:
+            radial-gradient(circle at 90% 10%, rgba(198, 107, 61, 0.24), transparent 35%),
+            radial-gradient(circle at 10% 90%, rgba(47, 93, 79, 0.2), transparent 38%),
+            linear-gradient(145deg, var(--paper), var(--mist));
+}
+
+a {
+    color: inherit;
+}
+
+.page-shell {
+    width: min(1080px, 92%);
+    margin: 0 auto;
+    padding: 28px 0 40px;
+}
+
+
+/* ==========================================================================
+   2. 導覽列與品牌 (Header & Navigation)
+   ========================================================================== */
+header.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin-bottom: 22px;
+    backdrop-filter: blur(10px);
+}
+
+.nav-wrap {
+    border: 1px solid var(--line);
+    background: rgba(255, 251, 245, 0.82);
+    border-radius: 999px;
+    box-shadow: 0 10px 24px -18px var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "Noto Serif TC", "Microsoft JhengHei", serif;
+    font-size: 1.08rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.brand-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: linear-gradient(140deg, var(--terracotta), #e4a35f);
+    box-shadow: 0 0 0 4px rgba(198, 107, 61, 0.18);
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.nav-btn {
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 0.95rem;
+    transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.nav-btn:hover {
+    transform: translateY(-1px);
+    border-color: var(--line);
+    background: rgba(232, 214, 181, 0.35);
+}
+
+.nav-btn.active {
+    background: var(--moss);
+    color: #f9f6f1;
+}
+
+
+/* ==========================================================================
+   3. 標題、文字與通用按鈕 (Typography & Buttons)
+   ========================================================================== */
+h1, h2, h3 {
+    margin: 0;
+    font-family: "Noto Serif TC", "Microsoft JhengHei", serif;
+}
+
+.page-title {
+    margin: 8px 0 6px;
+    font-size: clamp(1.55rem, 3vw, 2.2rem);
+}
+
+.page-subtitle {
+    margin: 0;
+    line-height: 1.7;
+    max-width: 60ch;
+}
+
+.btn {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fffaf2;
+    color: var(--ink);
+    padding: 8px 14px;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.btn:hover {
+    border-color: #b69e71;
+}
+
+.btn.warn {
+    background: #f8e0d2;
+    border-color: #e6b89c;
+}
+
+
+/* ==========================================================================
+   4. 通用容器與面板 (Panels & Modules)
+   ========================================================================== */
+.section-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 20px;
+}
+
+.panel {
+    margin-top: 18px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 20px;
+    background: rgba(255, 250, 243, 0.82);
+    box-shadow: 0 20px 32px -28px var(--shadow);
+}
+
+.info-card {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: rgba(255, 250, 243, 0.8);
+    box-shadow: 0 14px 24px -22px var(--shadow);
+    padding: 18px;
+}
+
+.info-card p {
+    margin: 10px 0 0;
+    line-height: 1.65;
+}
+
+.home-module {
+    margin-top: 18px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 20px;
+    background: rgba(255, 250, 243, 0.82);
+    box-shadow: 0 20px 32px -28px var(--shadow);
+}
+
+.module-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.module-tip {
+    margin: 8px 0 12px;
+    color: #4f595f;
+}
+
+.home-empty {
+    margin: 0;
+    border: 1px dashed #b6a17d;
+    border-radius: 12px;
+    padding: 14px;
+    background: rgba(255, 245, 232, 0.7);
+    color: #5c4d38;
+}
+
+
+/* ==========================================================================
+   5. 首頁英雄區 (Hero Section)
+   ========================================================================== */
+.hero {
+    border: 1px solid var(--line);
+    border-radius: 28px;
+    padding: 34px;
+    background:
+            linear-gradient(120deg, rgba(47, 93, 79, 0.92), rgba(31, 67, 58, 0.94)),
+            radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.25), transparent 45%);
+    color: #fdf8ef;
+    box-shadow: 0 20px 40px -30px var(--shadow);
+    overflow: hidden;
+}
+
+.hero h1 {
+    font-size: clamp(1.9rem, 4vw, 2.7rem);
+    line-height: 1.2;
+}
+
+.hero p {
+    max-width: 62ch;
+    line-height: 1.75;
+    margin: 14px 0 0;
+}
+
+.cta-row {
+    margin-top: 24px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-weight: 700;
+}
+
+.cta-btn.primary {
+    background: var(--terracotta);
+    color: #fffaf3;
+}
+
+.cta-btn.secondary {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #fffaf3;
+}
+
+
+/* ==========================================================================
+   6. 畫廊系統 (Gallery)
+   ========================================================================== */
+.gallery-actions {
+    margin-top: 14px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.gallery-grid {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+}
+
+.gallery-item {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 10px;
+    background: #fffdf8;
+}
+
+.gallery-item img {
+    display: block;
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+}
+
+.gallery-meta {
+    margin-top: 8px;
+    font-size: 0.86rem;
+    color: #4f595f;
+}
+
+.empty-state {
+    margin-top: 16px;
+    border: 1px dashed #b6a17d;
+    border-radius: 14px;
+    padding: 22px;
+    background: rgba(255, 245, 232, 0.7);
+    text-align: center;
+}
+
+
+/* ==========================================================================
+   7. 繪圖室佈局與工具 (Studio & Canvas)
+   ========================================================================== */
+.studio-layout {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: 1.45fr 0.85fr;
+    gap: 14px;
+}
+
+.canvas-wrap {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #fffaf1;
+    padding: 12px;
+}
+
+#paintCanvas {
+    width: 100%;
+    height: 500px;
+    border: 1px solid #d6be95;
+    border-radius: 12px;
+    display: block;
+    touch-action: none;
+    background: #fffdfa;
+}
+
+.toolbar {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: rgba(255, 252, 246, 0.92);
+    padding: 14px;
+}
+
+.toolbar h3 {
+    margin-bottom: 10px;
+}
+
+.control-group {
+    margin-bottom: 14px;
+}
+
+.control-group label {
+    display: block;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.control-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.tip-list {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    color: #4f595f;
+    line-height: 1.65;
+}
+
+.note {
+    margin-top: 10px;
+    font-size: 0.88rem;
+    color: #4f595f;
+}
+
+
+/* ==========================================================================
+   8. 跑馬燈與資源清單 (Care Ticker & Resources)
+   ========================================================================== */
+.care-ticker {
+    margin-top: 10px;
+    overflow: hidden;
+    padding: 4px;
+}
+
+.ticker-track {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.ticker-card {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: rgba(255, 250, 243, 0.8);
+    box-shadow: 0 14px 24px -22px var(--shadow);
+    padding: 18px;
+    min-height: 116px;
+    display: flex;
+    align-items: center;
+    line-height: 1.65;
+    color: var(--moss);
+    font-weight: 700;
+    margin: 0;
+}
+
+#careTickerText {
+    margin: 0;
+    font-weight: 700;
+    color: var(--moss);
+    transform: translateX(0);
+    white-space: nowrap;
+}
+
+.resource-list {
+    margin: 12px 0 0;
+    padding-left: 20px;
+    line-height: 1.7;
+}
+
+.resource-list a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+
+/* ==========================================================================
+   9. 雲端佈置板與作品 (Layout Board & Works)
+   ========================================================================== */
+.layout-board {
+    margin-top: 10px;
+    position: relative;
+    min-height: 350px;
+    border: 2px dashed #cdb48a;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.7);
+    overflow: hidden;
+}
+
+.layout-board.is-over {
+    border-color: var(--terracotta);
+    background: rgba(255, 244, 234, 0.92);
+}
+
+.pool-title {
+    margin-top: 14px;
+    font-size: 1.06rem;
+}
+
+.works-pool {
+    margin-top: 10px;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}
+
+.work-card,
+.placed-work {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fffdf9;
+    box-shadow: 0 10px 24px -22px var(--shadow);
+    user-select: none;
+}
+
+.work-card {
+    padding: 8px;
+    cursor: grab;
+}
+
+.work-card:active,
+.placed-work:active {
+    cursor: grabbing;
+}
+
+.work-card img,
+.placed-work img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    display: block;
+    border: 1px solid var(--line);
+    object-fit: cover;
+    background: #fff;
+}
+
+.work-card p,
+.placed-work p {
+    margin: 6px 2px 2px;
+    font-size: 0.82rem;
+    color: #4f595f;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.placed-work {
+    position: absolute;
+    width: 128px;
+    padding: 6px;
+}
+
+.board-empty {
+    margin: 0;
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #76654c;
+    text-align: center;
+    padding: 20px;
+}
+
+
+/* ==========================================================================
+   10. 劇情選擇系統 (Scenario Grid)
+   ========================================================================== */
+.scenario-grid {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.scenario-card {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: rgba(255, 250, 243, 0.9);
+    box-shadow: 0 14px 24px -22px var(--shadow);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.scenario-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 32px -18px var(--shadow);
+}
+
+.scenario-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+.scenario-card-img {
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    background: var(--mist);
+    border-bottom: 2px solid var(--terracotta);
+}
+
+.scenario-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.scenario-card:hover .scenario-card-img img {
+    transform: scale(1.05);
+}
+
+.scenario-card-content {
+    padding: 16px;
+}
+
+.scenario-card-content h3 {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+    color: var(--moss);
+}
+
+.scenario-card-content p {
+    margin: 0;
+    line-height: 1.6;
+    color: #4f595f;
+    font-size: 0.92rem;
+}
+
+.scenario-card.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.scenario-card.locked .scenario-card-img {
+    position: relative;
+}
+
+.scenario-card.locked .scenario-card-img::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(26, 34, 41, 0.45);
+    backdrop-filter: blur(2px);
+}
+
+.lock-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.5rem;
+    z-index: 2;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+}
+
+.scenario-card.locked:hover {
+    transform: none;
+    box-shadow: 0 14px 24px -22px var(--shadow);
+}
+
+.scenario-card.locked .scenario-card-img img {
+    filter: grayscale(50%);
+}
+
+
+/* ==========================================================================
+   11. 動態效果 (Animations)
+   ========================================================================== */
+.reveal {
+    animation: riseIn 0.62s ease both;
+}
+
+.reveal.delay-1 {
+    animation-delay: 0.1s;
+}
+
+.reveal.delay-2 {
+    animation-delay: 0.2s;
+}
+
+.reveal.delay-3 {
+    animation-delay: 0.3s;
+}
+
+@keyframes riseIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* ==========================================================================
+   12. 響應式設計 (Media Queries)
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    #careTickerText {
+        transition: none;
+        animation: none;
+    }
+}
+
+@media (max-width: 920px) {
+    .section-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .studio-layout {
+        grid-template-columns: 1fr;
+    }
+
+    #paintCanvas {
+        height: 380px;
+    }
+
+    .layout-board {
+        min-height: 300px;
+    }
+
+    .ticker-track {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 620px) {
+    .page-shell {
+        width: 94%;
+        padding-top: 16px;
+    }
+
+    .nav-wrap {
+        border-radius: 20px;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .hero {
+        padding: 24px;
+    }
+
+    .home-module {
+        padding: 16px;
+    }
+
+    .placed-work {
+        width: 98px;
+    }
+
+    .ticker-track {
+        grid-template-columns: 1fr;
+    }
+}
+/* ---- 畫廊卡片增強 ---- */
+.work-name {
+    margin: 8px 0 4px;
+    font-family: "Noto Serif TC", "Microsoft JhengHei", serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.4;
+}
+
+.shape-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 6px 0;
+}
+
+.shape-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(47, 93, 79, 0.08);
+    border: 1px solid rgba(47, 93, 79, 0.15);
+    font-size: 0.78rem;
+    color: var(--moss);
+    white-space: nowrap;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: #5a6b6a;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+/* ---- 趨勢圖表區塊 ---- */
+.trend-charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+    margin: 20px 0 10px;
+}
+
+.chart-card {
+    background: #fffdf8;
+    padding: 18px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.chart-card h3 {
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+    color: var(--moss);
+}
