@@ -189,12 +189,12 @@ export const AnalysisAPI = {
         // 溫度描述詞
         const tempWords = warmRatio > 70 ? ['溫暖的', '熾熱的', '陽光下的']
             : warmRatio > 40 ? ['柔和的', '微光中的', '黃昏時的']
-            : ['沉靜的', '涼爽的', '月光下的'];
+                : ['沉靜的', '涼爽的', '月光下的'];
 
         // 密度描述詞
         const densityWords = coverage > 50 ? ['繁盛', '填滿', '豐盈']
             : coverage > 20 ? ['漫步', '散落', '呢喃']
-            : ['幾筆', '低語', '輕觸'];
+                : ['幾筆', '低語', '輕觸'];
 
         // 形狀主題詞
         let themeWords = ['風景'];
