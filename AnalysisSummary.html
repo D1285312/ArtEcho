@@ -13,7 +13,6 @@
         .brand-dot { width: 12px; height: 12px; background-color: #dcc9a7; border-radius: 50%; display: inline-block; }
         .summary-header { text-align: center; padding: 40px 0; background: var(--moss); color: white; border-radius: 24px; margin-bottom: 30px; }
 
-        /* 🌟 優化後的圖表網格 */
         .chart-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -66,7 +65,6 @@
             color: #5a6b6a;
         }
 
-        /* 🌟 修正圖表無限拉長的佈局設定 */
         .chart-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -80,7 +78,6 @@
             border-radius: 20px;
             border: 1px solid var(--line);
             box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            /* 🌟 關鍵：設定固定高度並防止內容溢出 */
             height: 350px;
             position: relative;
             display: flex;
@@ -140,21 +137,18 @@
 <script>
     window.onload = () => {
         const works = JSON.parse(localStorage.getItem("artEchoGallery") || "[]");
-        // 🌟 確保只抓取當前情境的最後四筆或根據 Level 排序
+
         const levelData = {};
         works.forEach(w => {
-            // 如果有多個情境，這裡可根據當前 scenarioId 過濾
             levelData[w.level] = w;
         });
 
         const levels = ["1", "2", "3", "4"];
         const labels = ["第一章", "第二章", "第三章", "第四章"];
 
-        // 🌟 數據抓取輔助函數
         const getStat = (l, key) => (levelData[l] && levelData[l].stats) ? parseFloat(levelData[l].stats[key]) : 0;
         const getDuration = (l) => levelData[l] ? parseInt(levelData[l].duration) : 0;
 
-        // 🌟 準備數據集
         const timeData = levels.map(l => getDuration(l));
         const coverageData = levels.map(l => getStat(l, 'coverage'));
         const warmData = levels.map(l => getStat(l, 'warmRatio'));

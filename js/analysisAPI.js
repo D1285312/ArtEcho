@@ -4,13 +4,11 @@
  */
 export const AnalysisAPI = {
     getPhysicalStats(ctx, width, height, drawingSteps) {
-        // --- 1. 靜態像素掃描 ---
         const imgData = ctx.getImageData(0, 0, width, height).data;
         let warmPixels = 0, paintedPixels = 0, leftPixels = 0;
 
         for (let i = 0; i < imgData.length; i += 4) {
             const r = imgData[i], g = imgData[i + 1], b = imgData[i + 2];
-            // 判斷非背景色
             if (r < 252 || g < 252 || b < 248) {
                 paintedPixels++;
                 const x = (i / 4) % width;
@@ -22,15 +20,13 @@ export const AnalysisAPI = {
         const coverage = ((paintedPixels / (width * height)) * 100).toFixed(1);
         const warmRatio = paintedPixels > 0 ? Math.round((warmPixels / paintedPixels) * 100) : 0;
 
-        // --- 2. 🌟 動態行為數據 (壓力與猶豫度計算) ---
         let totalPressure = 0, pointCount = 0, hesitationPoints = 0;
 
         drawingSteps.forEach(stroke => {
             stroke.points.forEach((p, idx) => {
                 pointCount++;
-                totalPressure += (p.pressure || 0.5); // 累積壓力
+                totalPressure += (p.pressure || 0.5);
 
-                // 猶豫偵測：若點與點之間位移極小但有時間停留
                 if (idx > 0) {
                     const prev = stroke.points[idx - 1];
                     const dist = Math.sqrt(Math.pow(p.x - prev.x, 2) + Math.pow(p.y - prev.y, 2));
@@ -46,7 +42,6 @@ export const AnalysisAPI = {
             coolRatio: 100 - warmRatio,
             leftWeight: paintedPixels > 0 ? Math.round((leftPixels / paintedPixels) * 100) : 50,
             strokeCount: drawingSteps.length,
-            // 🌟 回歸完整指標
             avgPressure: pointCount > 0 ? (totalPressure / pointCount).toFixed(2) : "0.00",
             hesitationRatio: pointCount > 0 ? Math.round((hesitationPoints / pointCount) * 100) : 0
         };
@@ -59,9 +54,7 @@ export const AnalysisAPI = {
      */
     detectShapes(ctx, width, height) {
         const imgData = ctx.getImageData(0, 0, width, height).data;
-        const step = 3; // 每 3 個像素取一次，加速掃描
-
-        // 建立二值化地圖 (是否有繪畫)
+        const step = 3;
         const mapW = Math.ceil(width / step);
         const mapH = Math.ceil(height / step);
         const binaryMap = new Uint8Array(mapW * mapH);
@@ -78,10 +71,9 @@ export const AnalysisAPI = {
             }
         }
 
-        // 連通區域標記 (Flood Fill)
         const labels = new Int32Array(mapW * mapH);
         let labelId = 0;
-        const regions = []; // 每區域的 {minX, minY, maxX, maxY, pixels, sumX, sumY}
+        const regions = [];
 
         for (let my = 0; my < mapH; my++) {
             for (let mx = 0; mx < mapW; mx++) {
@@ -104,7 +96,6 @@ export const AnalysisAPI = {
                         if (cy < region.minY) region.minY = cy;
                         if (cy > region.maxY) region.maxY = cy;
 
-                        // 4-方向擴展
                         const neighbors = [
                             ci - 1, ci + 1,
                             ci - mapW, ci + mapW
@@ -113,14 +104,13 @@ export const AnalysisAPI = {
                             if (ni >= 0 && ni < binaryMap.length && binaryMap[ni] === 1 && labels[ni] === 0) {
                                 const nx = ni % mapW;
                                 const ny = Math.floor(ni / mapW);
-                                // 確保不跨行
+
                                 if (Math.abs(nx - cx) <= 1 && Math.abs(ny - cy) <= 1) {
                                     stack.push(ni);
                                 }
                             }
                         }
                     }
-                    // 過濾太小的雜訊區域 (至少 15 個像素點)
                     if (region.pixels >= 15) {
                         regions.push(region);
                     }
@@ -128,7 +118,6 @@ export const AnalysisAPI = {
             }
         }
 
-        // 分類每個區域的形狀
         const shapes = [];
         const detected = new Set();
 
