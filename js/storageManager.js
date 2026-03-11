@@ -10,7 +10,7 @@ export const StorageManager = {
      * @param {Object} data - 包含畫作所有資訊的物件
      */
     saveWork(data) {
-        const { storyId, level, dataUrl, stats, chatLog, startTime, name, shapes } = data;
+        const { storyId, level, dataUrl, stats, chatLog, startTime, name, shapes, description } = data;
 
         // 統一計算作畫時長
         const endTime = Date.now();
@@ -30,6 +30,7 @@ export const StorageManager = {
             duration: duration, // 確保畫廊讀得到這個欄位
             name: name || '',          // 自動命名
             shapes: shapes || [],      // 形狀偵測結果
+            description: description,
             timestamp: new Date().toLocaleString()
         };
 
