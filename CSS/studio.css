@@ -3,7 +3,6 @@
    包含：劇情容器、畫布佈局、工具列、AI 聊天及命名視窗
    ============================================================ */
 
-/* --- 1. 劇情容器 (Scenario Container) --- */
 .scenario-container {
     background: var(--moss);
     color: white;
@@ -30,7 +29,6 @@
     justify-content: center;
 }
 
-/* --- 2. 畫筆工具與控制項 --- */
 .brush-type-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -106,7 +104,6 @@
     color: white !important;
 }
 
-/* --- 3. 畫布區域 (Canvas Wrap) --- */
 .canvas-wrap {
     width: 100%;
     min-height: 500px;
@@ -138,7 +135,6 @@
     z-index: 10;
 }
 
-/* --- 4. 數據分析面板 --- */
 .analysis-panel {
     margin-top: 15px;
     padding: 15px;
@@ -157,7 +153,6 @@
     padding-bottom: 5px;
 }
 
-/* --- 5. 🌟 彈窗基礎與對稱輸入框 (AI & Save Modal) --- */
 .ai-modal {
     position: fixed;
     top: 0;
@@ -180,7 +175,7 @@
     display: flex;
     flex-direction: column;
     max-height: 85vh;
-    box-sizing: border-box; /* 🌟 確保寬度包含 Padding */
+    box-sizing: border-box;
     z-index: 2001;
 }
 
@@ -192,7 +187,6 @@
     color: var(--moss);
 }
 
-/* 🌟 統一輸入框寬度與外觀 */
 .ai-input {
     width: 100% !important;
     box-sizing: border-box;
@@ -206,7 +200,6 @@
     resize: none;
 }
 
-/* 🌟 彈窗底部按鈕對稱佈置 */
 .save-modal-actions {
     display: flex;
     gap: 12px;

@@ -204,15 +204,11 @@
       drawingSteps.push(currentStroke);
       drawing = false;
       canvas.releasePointerCapture(e.pointerId);
-
-      // 🌟 確保畫了新筆劃後，回放索引歸零
-      // 這樣下次按「播放」時會清空畫布，從第一筆播到你剛剛新畫的這一筆
       currentStrokeIdx = 0;
       currentPointIdx = 0;
     }
   };
 
-  // 🌟 分析數據擴充
   document.getElementById("analyzeBtn").onclick = () => {
     if (!drawingSteps || drawingSteps.length === 0) {
       alert("畫布還是空的喔！請先畫些東西再進行分析。");
@@ -221,7 +217,6 @@
     document.getElementById("analysisDisplay").style.display = "block";
     const stats = AnalysisAPI.getPhysicalStats(ctx, canvas.width, canvas.height, drawingSteps);
 
-    // 🌟 統一變數名稱
     let totalSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
 
     const formatTime = (s) => {
@@ -275,11 +270,9 @@
     d.innerHTML = text; h.appendChild(d); h.scrollTop = h.scrollHeight;
   }
 
-  // --- 步驟 A：結束對話，打開儲存視窗 ---
   document.getElementById("finishChapterBtn").onclick = () => {
     document.getElementById("aiModal").style.display = "none";
 
-    // 🌟 打開儲存視窗，此時先不計算跳轉邏輯
     const saveModal = document.getElementById("saveModal");
     if (saveModal) {
       saveModal.style.display = "flex";
@@ -290,34 +283,29 @@
     }
   };
 
-  // --- 步驟 B：確認儲存，這時才計算跳轉 ---
-  // --- 步驟 B：確認儲存，這時才計算跳轉 ---
   document.getElementById("confirmSaveBtn").onclick = () => {
     const name = document.getElementById("workNameInput").value.trim() || "未命名作品";
     const desc = document.getElementById("workDescInput").value.trim() || "";
 
-    // 🌟 核心修正 1：重新計算總作畫秒數 (這在原本的 finishChapterBtn 裡有做)
     const totalSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
 
-    // 🌟 核心修正 2：確保儲存的物件結構與 StorageManager 要求完全一致
     try {
       StorageManager.saveWork({
         dataUrl: canvas.toDataURL(),
         chatLog: chatLog,
-        startTime: startTime, // 傳入開始時間供後續計算
-        duration: totalSeconds, // 🌟 補上計算後的秒數
+        startTime: startTime,
+        duration: totalSeconds,
         scenarioId: currentScenarioId,
         level: currentChapterLevel,
         stats: AnalysisAPI.getPhysicalStats(ctx, canvas.width, canvas.height, drawingSteps),
-        name: name,         // 🌟 新增的自定義名稱
-        description: desc   // 🌟 新增的 AI 或手寫簡介
+        name: name,
+        description: desc
       });
       console.log("作品已成功存入 LocalStorage");
     } catch (e) {
       console.error("儲存過程發生錯誤:", e);
     }
 
-    // 計算下一章並跳轉
     const nextLevel = parseInt(currentChapterLevel) + 1;
     if (nextLevel <= 4) {
       window.location.href = `Studio.html?scenario=${currentScenarioId}&chapter=${nextLevel}`;
@@ -333,18 +321,15 @@
     btn.textContent = "生成中...";
     btn.disabled = true;
 
-    // 彙整對話內容作為生成背景
     const conversation = chatLog.map(m => `${m.role === 'ai' ? 'AI' : '我'}: ${m.text}`).join('\n');
     const genPrompt = `你是一位溫柔、平易近人的藝術治療師。根據以下對話摘要，為使用者的畫作寫一段溫暖(以使用者的第一人稱視角)、具備心理洞察力的簡介（約 50 字內，不要有標題）。\n\n對話內容：\n${conversation}`;
 
     try {
-      // 呼叫原本的 GeminiService
       await GeminiService.call({
         systemPrompt: genPrompt,
         userMessage: "請幫我寫簡介。",
         chatHistory: [],
         onSuccess: (formatted, raw) => {
-          // 將 AI 生成的原始文字填入 textarea
           document.getElementById("workDescInput").value = raw.trim();
           btn.textContent = originalText;
           btn.disabled = false;
@@ -361,11 +346,7 @@
     }
   };
 
-
-
-  // 🌟 回放邏輯 Bug 修復
   function playNext() {
-    // 檢查是否還在播放狀態或是否已播完
     if (!isPlaying || currentStrokeIdx >= drawingSteps.length) {
       if (currentStrokeIdx >= drawingSteps.length) stopPlayback(true);
       return;
@@ -373,18 +354,15 @@
 
     const s = drawingSteps[currentStrokeIdx];
 
-    // 渲染當前點位
     if (currentPointIdx > 0) {
       const p = s.points[currentPointIdx];
       const prev = s.points[currentPointIdx - 1];
-      // 🌟 確保回放也支援壓力渲染，保持質感一致
       const dynamicStroke = { ...s, size: s.size * (p.pressure * 1.5) };
       BrushEngine.drawStep(ctx, dynamicStroke, p, prev);
     }
 
     currentPointIdx++;
 
-    // 換下一條筆劃
     if (currentPointIdx >= s.points.length) {
       currentStrokeIdx++;
       currentPointIdx = 0;
@@ -394,8 +372,6 @@
   }
 
   function startPlayback() {
-    // 情況 A：已經播到最後一筆 (播完了)
-    // 情況 B：索引被 onpointerup 重設為 0 (中途有畫新東西)
     if (currentStrokeIdx >= drawingSteps.length || (currentStrokeIdx === 0 && currentPointIdx === 0)) {
       // 執行清空畫布，從第一筆開始播
       ctx.fillStyle = "#fffdfa";
@@ -415,10 +391,8 @@
     cancelAnimationFrame(animationId);
     animationId = null;
 
-    // 更新按鈕圖示
     document.getElementById("playbackIcon").textContent = "play_circle";
 
-    // 只要停止回放，無論何種原因，都隱藏左上角標籤
     document.getElementById("playbackIndicator").style.display = "none";
   }
 
@@ -426,14 +400,14 @@
     if (drawingSteps.length === 0) return;
 
     if (isPlaying) {
-      stopPlayback(); // 暫停時呼叫，現在會自動隱藏標籤
+      stopPlayback();
     } else {
-      startPlayback(); // 開始播放時會顯示標籤
+      startPlayback();
     }
   };
 
   document.getElementById("undoBtn").onclick = () => {
-    stopPlayback(true); // 關閉動畫與 UI 標籤
+    stopPlayback(true);
 
     let lastSnapshot = history.pop();
     if (lastSnapshot) {
@@ -445,12 +419,10 @@
       };
       img.src = lastSnapshot;
 
-      // 同步移除最後一筆物理路徑
       if (drawingSteps.length > 0) {
         drawingSteps.pop();
       }
 
-      // 🌟 重設索引，確保回放不會出錯
       currentStrokeIdx = 0;
       currentPointIdx = 0;
     }
