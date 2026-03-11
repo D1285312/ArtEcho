@@ -11,15 +11,11 @@ export const StorageManager = {
      */
     saveWork(data) {
         const { storyId, level, dataUrl, stats, chatLog, startTime, name, shapes, description } = data;
-
-        // 統一計算作畫時長
         const endTime = Date.now();
         const duration = startTime ? Math.floor((endTime - startTime) / 1000) : 0;
 
-        // 讀取舊資料
         let works = JSON.parse(localStorage.getItem(this.DB_KEY) || "[]");
 
-        // 封裝新作品物件
         const newWork = {
             id: Date.now(),
             storyId: storyId,
@@ -27,9 +23,9 @@ export const StorageManager = {
             dataUrl: dataUrl,
             stats: stats,
             chatLog: chatLog,
-            duration: duration, // 確保畫廊讀得到這個欄位
-            name: name || '',          // 自動命名
-            shapes: shapes || [],      // 形狀偵測結果
+            duration: duration,
+            name: name || '',
+            shapes: shapes || [],
             description: description,
             timestamp: new Date().toLocaleString()
         };
