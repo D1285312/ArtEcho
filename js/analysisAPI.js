@@ -3,44 +3,52 @@
  * 負責從畫布提取客觀物理參數、形狀偵測、名稱生成
  */
 export const AnalysisAPI = {
-    /**
-     * 執行畫布像素掃描
-     */
     getPhysicalStats(ctx, width, height, drawingSteps) {
+        // --- 1. 靜態像素掃描 ---
         const imgData = ctx.getImageData(0, 0, width, height).data;
-        let warmPixels = 0;
-        let paintedPixels = 0;
-        let leftPixels = 0;
+        let warmPixels = 0, paintedPixels = 0, leftPixels = 0;
 
-        // 逐像素分析 RGB 數值
         for (let i = 0; i < imgData.length; i += 4) {
-            const r = imgData[i];
-            const g = imgData[i + 1];
-            const b = imgData[i + 2];
-
-            // 判斷是否為「非背景色」像素 (背景為 #fffdfa)
+            const r = imgData[i], g = imgData[i + 1], b = imgData[i + 2];
+            // 判斷非背景色
             if (r < 252 || g < 252 || b < 248) {
                 paintedPixels++;
-
-                // 計算空間分佈
                 const x = (i / 4) % width;
                 if (x < width / 2) leftPixels++;
-
-                // 判斷冷暖色 (R > B 為暖)
                 if (r > b) warmPixels++;
             }
         }
 
-        const totalPixels = width * height;
-        const coverage = ((paintedPixels / totalPixels) * 100).toFixed(1);
+        const coverage = ((paintedPixels / (width * height)) * 100).toFixed(1);
         const warmRatio = paintedPixels > 0 ? Math.round((warmPixels / paintedPixels) * 100) : 0;
+
+        // --- 2. 🌟 動態行為數據 (壓力與猶豫度計算) ---
+        let totalPressure = 0, pointCount = 0, hesitationPoints = 0;
+
+        drawingSteps.forEach(stroke => {
+            stroke.points.forEach((p, idx) => {
+                pointCount++;
+                totalPressure += (p.pressure || 0.5); // 累積壓力
+
+                // 猶豫偵測：若點與點之間位移極小但有時間停留
+                if (idx > 0) {
+                    const prev = stroke.points[idx - 1];
+                    const dist = Math.sqrt(Math.pow(p.x - prev.x, 2) + Math.pow(p.y - prev.y, 2));
+                    // 假設採樣頻率下，位移小於 1.5 像素視為停頓猶豫
+                    if (dist < 1.5) hesitationPoints++;
+                }
+            });
+        });
 
         return {
             coverage: coverage,
             warmRatio: warmRatio,
             coolRatio: 100 - warmRatio,
             leftWeight: paintedPixels > 0 ? Math.round((leftPixels / paintedPixels) * 100) : 50,
-            strokeCount: drawingSteps.length // 從紀錄中提取總筆劃
+            strokeCount: drawingSteps.length,
+            // 🌟 回歸完整指標
+            avgPressure: pointCount > 0 ? (totalPressure / pointCount).toFixed(2) : "0.00",
+            hesitationRatio: pointCount > 0 ? Math.round((hesitationPoints / pointCount) * 100) : 0
         };
     },
 
