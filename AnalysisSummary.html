@@ -136,7 +136,11 @@
 
 <script>
     window.onload = () => {
-        const works = JSON.parse(localStorage.getItem("artEchoGallery") || "[]");
+        const summaryTempKey = "artEchoSelectedGroupForSummary";
+        const selectedWorks = JSON.parse(localStorage.getItem(summaryTempKey) || "null");
+        const works = Array.isArray(selectedWorks) && selectedWorks.length > 0
+            ? selectedWorks
+            : JSON.parse(localStorage.getItem("artEchoGallery") || "[]");
 
         const levelData = {};
         works.forEach(w => {

@@ -49,6 +49,9 @@
           <p id="detailSubtitle"></p>
         </div>
 
+        <div style="margin: 12px 0 18px 0;">
+          <button class="btn" id="openFullReportBtn" type="button">查看完整創作全維度報告</button>
+        </div>
         <!-- 該故事的趨勢圖（同一頁顯示 3-4 個圖表） -->
         <div id="storyTrendSection" class="trend-charts" style="display:none;">
           <div class="chart-card">
@@ -98,6 +101,7 @@
   import { StorageManager } from './js/storageManager.js';
 
   const storageKey = "artEchoGallery";
+  const summaryTempKey = "artEchoSelectedGroupForSummary";
   const emptyState = document.getElementById("emptyState");
   const folderView = document.getElementById("folderView");
   const folderGrid = document.getElementById("folderGrid");
@@ -135,7 +139,7 @@
   document.head.appendChild(style);
 
   // 故事中文名稱對照表
-  // 預留舊的對照表作為 fallback（將以共用 Story.js 為主）
+  // 預留舊的對照表作為 fallback（將以共用 S<script type="module">tory.js 為主）
   const storyNames = {
     snow_white: "公主的等待",
   };
@@ -231,10 +235,9 @@
     return [{ type: 'freeform', label: '🌊 自由風格' }];
   }
   /* ============ 資料夾主路面 ============ */
+  /* ============ 資料夾主路面 ============ */
   function renderFolders() {
     let works = getWorks();
-    // 為舊資料補上 groupKey（必要時），並取得最新 works
-    works = ensureGroupKeys(works) || works;
     folderGrid.innerHTML = "";
     detailView.classList.remove("active");
     folderView.style.display = "block";
@@ -246,126 +249,82 @@
     }
     emptyState.hidden = true;
 
-    const groups = groupByStory(works);
-
-    // 先將 groupKey 依 base (suffix) 排序，使同一劇情的群組連續顯示
-    const sortedKeys = Object.keys(groups).sort((a, b) => {
-      const aMatch = a.match(/^(.*?)\s*\((\d+)\)$/);
-      const bMatch = b.match(/^(.*?)\s*\((\d+)\)$/);
-      const aBase = aMatch ? aMatch[1] : a;
-      const bBase = bMatch ? bMatch[1] : b;
-      if (aBase === bBase) {
-        const aIdx = aMatch ? parseInt(aMatch[2]) : 0;
-        const bIdx = bMatch ? parseInt(bMatch[2]) : 0;
-        return aIdx - bIdx;
+    // 1. 分組邏輯：每組最多 4 張
+    const groups = {};
+    works.forEach(w => {
+      const sid = w.storyId || w.scenarioId || "unknown";
+      let groupIdx = 1;
+      while (groups[`${sid}_${groupIdx}`] && groups[`${sid}_${groupIdx}`].length >= 4) {
+        groupIdx++;
       }
-      return aBase.localeCompare(bBase);
+      const groupKey = `${sid}_${groupIdx}`;
+      if (!groups[groupKey]) groups[groupKey] = [];
+      groups[groupKey].push(w);
     });
 
-    // 建立 base -> keys 的對應，用於顯示序號（若同 base 多於 1 個群組）
-    const baseMap = {};
-    for (const k of sortedKeys) {
-      const m = k.match(/^(.*?)\s*\((\d+)\)$/);
-      const base = m ? m[1].trim() : k;
-      baseMap[base] = baseMap[base] || [];
-      baseMap[base].push(k);
-    }
-
-    for (const groupKey of sortedKeys) {
+    Object.keys(groups).forEach(groupKey => {
       const groupWorks = groups[groupKey];
+      const lastUnderscoreIndex = groupKey.lastIndexOf('_');
+      const storyId = groupKey.slice(0, lastUnderscoreIndex);
+      const groupNum = parseInt(groupKey.slice(lastUnderscoreIndex + 1), 10);
+
       const card = document.createElement("div");
       card.className = "folder-card";
 
-      // 封面用最多 4 張圖拼
       const coverDiv = document.createElement("div");
       coverDiv.className = "folder-cover";
+      const grid = document.createElement("div");
+      grid.className = "folder-cover-grid";
 
-      const thumbs = groupWorks.slice(-4);
-      if (thumbs.length === 1) {
-        const wrap = document.createElement("div");
-        wrap.className = "folder-cover-single";
+      groupWorks.forEach(t => {
         const img = document.createElement("img");
-        img.src = thumbs[0].dataUrl;
-        img.alt = "";
-        wrap.appendChild(img);
-        coverDiv.appendChild(wrap);
-      } else {
-        const grid = document.createElement("div");
-        grid.className = "folder-cover-grid";
-        for (const t of thumbs) {
-          const img = document.createElement("img");
-          img.src = t.dataUrl;
-          img.alt = "";
-          grid.appendChild(img);
-        }
-        coverDiv.appendChild(grid);
-      }
+        img.src = t.dataUrl;
+        grid.appendChild(img);
+      });
+      coverDiv.appendChild(grid);
 
-      // 數量 badge
-      const badge = document.createElement("span");
-      badge.className = "folder-badge";
-      badge.textContent = `${groupWorks.length} 幅作品`;
-      coverDiv.appendChild(badge);
-
-      const icon = document.createElement("span");
-      icon.className = "folder-icon";
-      icon.textContent = "📁";
-      coverDiv.appendChild(icon);
-
-      // 文字區
       const info = document.createElement("div");
       info.className = "folder-info";
+      const h3 = document.createElement("h3");
 
-      const title = document.createElement("h3");
-      // 從 groupKey 推回原始 storyId（如果命名帶 suffix，取 base），並以 Story.js 的 title 為主
-      let base = groupKey;
-      const suffixMatch = groupKey.match(/^(.*?)\s*\((\d+)\)$/);
-      let suffixNum = null;
-      if (suffixMatch) { base = suffixMatch[1].trim(); suffixNum = suffixMatch[2]; }
-      // 取得場景標題（若 Story.js 已載入，使用 window.getScenarioById）
-      let displayTitle = base;
+      // --- 取得中文標題 ---
+      let displayTitle = groupWorks[0]?.storyTitle || "未知主題";
       try {
-        if (window.getScenarioById) {
-          const sc = window.getScenarioById(base);
-          if (sc && sc.title) displayTitle = sc.title;
+        if (!groupWorks[0]?.storyTitle) {
+          if (window.getScenarioById) {
+            const sc = window.getScenarioById(storyId);
+            displayTitle = (sc && sc.title) ? sc.title : storyId;
+          } else {
+            const storyNames = { snow_white: "公主的等待", snow: "公主的等待" };
+            displayTitle = storyNames[storyId] || storyId;
+          }
         }
-      } catch (e) {}
-      if (!displayTitle || displayTitle === '') displayTitle = storyNames[base] || base;
-      // 如果同 base 有多個群組，顯示序號（1,2,...），即使第一個也會顯示 1
-      const groupList = baseMap[base] || [];
-      if (groupList.length > 1) {
-        const idx = groupList.indexOf(groupKey);
-        displayTitle = `${displayTitle} (${idx + 1})`;
-      } else if (suffixNum) {
-        // 若只有一個群組但名稱本身帶後綴，保留後綴顯示
-        displayTitle = `${displayTitle} (${suffixNum})`;
+      } catch (e) {
+        displayTitle = storyId;
       }
-      title.textContent = displayTitle;
-      info.appendChild(title);
 
-      const desc = document.createElement("p");
-      const levels = [...new Set(groupWorks.map(w => w.level))];
-      desc.textContent = `已完成章節：${levels.sort().map(l => chapterTitles[l] || `第${l}章`).join('、')}`;
-      info.appendChild(desc);
+      // --- 🌟 關鍵修正：處理 (1), (2) 顯示邏輯 ---
+      if (groupNum > 1) {
+        // 第 2 組顯示 (1)，第 3 組顯示 (2)...
+        h3.textContent = `${displayTitle}(${groupNum - 1})`;
+      } else {
+        // 第 1 組不顯示數字
+        h3.textContent = displayTitle;
+      }
 
-      // 進度條
-      const bar = document.createElement("div");
-      bar.className = "progress-bar";
-      const fill = document.createElement("div");
-      fill.className = "progress-fill";
-      fill.style.width = `${Math.min(100, (levels.length / 4) * 100)}%`;
-      bar.appendChild(fill);
-      info.appendChild(bar);
+      const p = document.createElement("p");
+      p.textContent = `已完成 ${groupWorks.length} / 4 個章節`;
 
+      info.appendChild(h3);
+      info.appendChild(p);
       card.appendChild(coverDiv);
       card.appendChild(info);
-      // 點擊時以 groupKey 開啟該群組
-      card.onclick = () => openStoryDetail(groupKey, groupWorks);
+
+      card.onclick = () => openStoryDetail(h3.textContent, groupWorks);
       folderGrid.appendChild(card);
-    }
+    });
   }
 
-  /* ============ 故事詳細頁 ============ */
   /* ============ 故事詳細頁 ============ */
   function openStoryDetail(groupKey, storyWorks) {
     folderView.style.display = "none";
@@ -384,6 +343,13 @@
     const levels = [...new Set(storyWorks.map(w => w.level))];
     document.getElementById("detailSubtitle").textContent =
             `共 ${storyWorks.length} 幅作品 · 已探索 ${levels.length}/4 章節`;
+    const fullReportBtn = document.getElementById("openFullReportBtn");
+    if (fullReportBtn) {
+      fullReportBtn.onclick = () => {
+        localStorage.setItem(summaryTempKey, JSON.stringify(storyWorks));
+        location.href = "AnalysisSummary.html";
+      };
+    }
 
     // 2. 清理並顯示趨勢圖表區
     const trendSection = document.getElementById('storyTrendSection');

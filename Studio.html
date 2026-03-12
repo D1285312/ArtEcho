@@ -121,6 +121,7 @@
   let startTime = null;
   let currentScenarioId = 'snow_white';
   let currentChapterLevel = '1';
+  let currentScenarioTitle = '';
 
   function getUrlParam(key, defaultValue) {
     const params = new URLSearchParams(window.location.search);
@@ -133,6 +134,7 @@
     if (window.getChapterData) {
       const data = window.getChapterData(currentScenarioId, currentChapterLevel);
       if (data) {
+        currentScenarioTitle = data.title;
         document.getElementById("scenarioTitle").textContent = '📍 ' + data.title;
         document.getElementById("scenarioDesc").textContent = data.desc;
         document.getElementById("scenarioImg").src = data.img;
@@ -287,16 +289,17 @@
   document.getElementById("confirmSaveBtn").onclick = () => {
     const name = document.getElementById("workNameInput").value.trim() || "未命名作品";
     const desc = document.getElementById("workDescInput").value.trim() || "";
-
     const totalSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
 
     try {
+      // 🌟 關鍵修正：確保參數名稱與 StorageManager 一致
       StorageManager.saveWork({
         dataUrl: canvas.toDataURL(),
         chatLog: chatLog,
         startTime: startTime,
         duration: totalSeconds,
-        scenarioId: currentScenarioId,
+        storyId: currentScenarioId,
+        storyTitle: currentScenarioTitle,
         level: currentChapterLevel,
         stats: AnalysisAPI.getPhysicalStats(ctx, canvas.width, canvas.height, drawingSteps),
         name: name,
@@ -311,7 +314,7 @@
     if (nextLevel <= 4) {
       window.location.href = `Studio.html?scenario=${currentScenarioId}&chapter=${nextLevel}`;
     } else {
-      alert("太棒了！妳已經完成了所有章節。即將進入回顧與總結。");
+      alert("太棒了！你/妳已經完成了所有章節。即將進入回顧與總結。");
       window.location.href = "AnalysisSummary.html";
     }
   };
