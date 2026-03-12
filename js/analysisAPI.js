@@ -16,7 +16,6 @@ export const AnalysisAPI = {
                 if (r > b) warmPixels++;
             }
         }
-
         const coverage = ((paintedPixels / (width * height)) * 100).toFixed(1);
         const warmRatio = paintedPixels > 0 ? Math.round((warmPixels / paintedPixels) * 100) : 0;
 
@@ -206,4 +205,5 @@ export const AnalysisAPI = {
         const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
         return `${pick(tempWords)}${pick(themeWords)}${pick(densityWords)}`;
     }
+
 };
