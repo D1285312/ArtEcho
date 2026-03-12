@@ -1,5 +1,5 @@
 /**
- * ArtEcho 主頁佈置管理模組 (進階版)
+ * ArtEcho 主頁佈置管理模組
  */
 const HomeLayoutManager = {
     config: {
