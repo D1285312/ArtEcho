@@ -95,4 +95,27 @@
       resetBtn: resetLayoutBtn
     });
   }
+
+  (function () {
+    // 現有的功能模組...
+
+    /**
+     * 4. 切換資源列表 (Resource Toggle)
+     */
+    function toggleResource(type) {
+      const govList = document.getElementById('gov-list');
+      const clinicList = document.getElementById('clinic-list');
+
+      if (type === 'gov') {
+        govList.style.display = 'block';    // 顯示衛福部
+        clinicList.style.display = 'none';  // 隱藏諮商所
+      } else {
+        govList.style.display = 'none';   // 隱藏衛福部
+        clinicList.style.display = 'block'; // 顯示諮商所
+      }
+    }
+
+    // 如果需要，將 `toggleResource` 綁定到全域作用域
+    window.toggleResource = toggleResource;
+  })();
 })();

@@ -60,15 +60,25 @@
 
 			<section class="home-module reveal delay-3" aria-label="官方健康資訊與資源">
 				<h2>官方健康資訊與資源</h2>
-                <div class="cta-row">
-					<a class="cta-btn primary" href="Story.html">前往作畫空間</a>
-					<a class="cta-btn secondary" href="Gallery.html">瀏覽個人畫廊</a>
+
+				<div class="cta-row">
+					<button class="cta-btn primary" onclick="toggleResource('gov')">衛福部免費資源</button>
+					<button class="cta-btn secondary" onclick="toggleResource('clinic')">全台合作諮商所</button>
 				</div>
-				<ul class="resource-list">
-					<li><a href="https://dep.mohw.gov.tw/DOMHAOH/" target="_blank" rel="noopener noreferrer">衛生福利部心理健康司</a></li>
-					<li><a href="https://www.hpa.gov.tw/Pages/List.aspx?nodeid=296" target="_blank" rel="noopener noreferrer">國民健康署心理健康促進</a></li>
-					<li><a href="https://www.mohw.gov.tw/cp-16-33598-1.html" target="_blank" rel="noopener noreferrer">安心專線 1925（依衛福部公告）</a></li>
-					<li><a href="https://www.gov.tw/News_Content.aspx?n=244&s=551679" target="_blank" rel="noopener noreferrer">台灣政府入口網 - 心理健康資訊</a></li>
+
+				<ul id="gov-list" class="resource-list">
+					<figure style="text-align: center;">
+						<a href="https://sps.mohw.gov.tw/mhs" target="_blank" rel="noopener noreferrer">
+							<img src="images/young_health.png" alt="衛生福利部心理健康司" style="max-width: 300px; height: auto;">
+						</a>
+						<figcaption>青壯世代心理健康方案</figcaption>
+					</figure>
+					<li><a href="...">國民健康署心理健康促進</a></li>
+				</ul>
+
+				<ul id="clinic-list" class="resource-list" style="display: none;">
+					<li>台北市：XX 諮商所</li>
+					<li>台中市：YY 諮商所</li>
 				</ul>
 			</section>
 		</main>

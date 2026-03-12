@@ -5,7 +5,7 @@
     --paper: #f6efe3;
     --ink: #1a2229;
     --moss: #2f5d4f;
-    --terracotta: #c66b3d;
+    --terracotta: #1e1f22;
     --sand: #e8d6b5;
     --mist: #f9f3ea;
     --line: #dcc9a7;
@@ -241,7 +241,7 @@ h1, h2, h3 {
     line-height: 1.75;
     margin: 14px 0 0;
 }
-
+/*官方健康資訊 cta*/
 .cta-row {
     margin-top: 24px;
     display: flex;
@@ -261,16 +261,27 @@ h1, h2, h3 {
 }
 
 .cta-btn.primary {
-    background: var(--terracotta);
+    background: rgb(194, 105, 61);
+    border-color: rgb(185, 100, 57);
     color: #fffaf3;
 }
 
 .cta-btn.secondary {
-    background: rgba(255, 255, 255, 0.14);
-    border-color: rgba(255, 255, 255, 0.4);
-    color: #fffaf3;
+    background: rgb(194, 105, 61);
+    border-color: rgb(185, 100, 57);
+    color: #fafafa;
 }
-
+.cta-btn:hover {
+    transform: scale(1.05); /* 增加一點縮放效果 */
+    transition: all 0.3s ease; /* 增加過渡效果 */
+    cursor: pointer;
+}
+.cta-btn:focus,
+.cta-btn:active {
+    background-color: #802d0b; /* 點選後維持的背景顏色 */
+    color: #fafafa; /* 文字顏色 */
+    border-color: #802d0b; /* 邊框顏色 */
+}
 
 /* ==========================================================================
    6. 畫廊系統 (Gallery)
@@ -435,12 +446,15 @@ h1, h2, h3 {
     margin: 12px 0 0;
     padding-left: 20px;
     line-height: 1.7;
+    list-style: none; /* 移除項目符號 */
+    padding: 0; /* 移除內邊距，讓列表更貼齊 */
 }
 
 .resource-list a {
     text-decoration: underline;
     text-underline-offset: 3px;
 }
+
 
 
 /* ==========================================================================
