@@ -9,9 +9,261 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="CSS/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="CSS/compa.css">
-</head>
+  <link rel="stylesheet" href="CSS/styles.css">
+  <style>
+    /* === 資料夾列表 === */
+    .folder-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 18px;
+      margin-top: 20px;
+    }
+    .folder-card {
+      border: 1.5px solid var(--line);
+      border-radius: 20px;
+      background: linear-gradient(145deg, #fffdf8, #faf3e6);
+      padding: 0;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      position: relative;
+    }
+    .folder-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px -10px var(--shadow);
+    }
 
+    .folder-cover {
+      position: relative;
+      height: 160px;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--moss), rgba(47, 93, 79, 0.75));
+    }
+
+    .folder-cover-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      width: 100%;
+      height: 100%;
+    }
+
+    .folder-cover-grid img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.85;
+    }
+
+    .folder-cover-single {
+      width: 100%;
+      height: 100%;
+    }
+
+    .folder-cover-single img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.85;
+    }
+
+    .folder-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.55);
+      color: white;
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      backdrop-filter: blur(4px);
+    }
+
+    .folder-icon {
+      position: absolute;
+      bottom: 10px;
+      left: 12px;
+      font-size: 1.6rem;
+      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
+    }
+
+    .folder-info {
+      padding: 14px 16px;
+    }
+
+    .folder-info h3 {
+      font-family: "Noto Serif TC", serif;
+      font-size: 1.1rem;
+      margin: 0 0 6px;
+      color: var(--ink);
+    }
+
+    .folder-info p {
+      font-size: 0.85rem;
+      color: #5a6b6a;
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .progress-bar {
+      height: 4px;
+      background: rgba(0, 0, 0, 0.06);
+      border-radius: 2px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--moss), var(--terracotta));
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+
+    /* === 詳細頁面（故事內頁） === */
+    .detail-view {
+      display: none;
+    }
+
+    .detail-view.active {
+      display: block;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fffaf2;
+      color: var(--ink);
+      padding: 8px 16px;
+      font-size: 0.92rem;
+      cursor: pointer;
+      margin-bottom: 16px;
+      transition: background 0.2s;
+    }
+
+    .back-btn:hover {
+      background: rgba(232, 214, 181, 0.35);
+    }
+
+    .detail-header {
+      text-align: center;
+      padding: 28px 20px;
+      background: linear-gradient(120deg, rgba(47, 93, 79, 0.92), rgba(31, 67, 58, 0.94));
+      color: #fdf8ef;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .detail-header h2 {
+      font-family: "Noto Serif TC", serif;
+      font-size: 1.5rem;
+      margin: 0 0 6px;
+    }
+
+    .detail-header p {
+      font-size: 0.9rem;
+      margin: 0;
+      opacity: 0.85;
+    }
+
+    .chapter-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .chapter-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fffdf8;
+      overflow: hidden;
+      display: block; /* 單欄顯示，不再在章節卡重複顯示圖片 */
+      min-height: 180px;
+    }
+
+    .chapter-body {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .chapter-body h3 {
+      font-family: "Noto Serif TC", serif;
+      font-size: 1.05rem;
+      color: var(--ink);
+      margin: 0;
+    }
+
+    .chapter-body .chapter-subtitle {
+      font-size: 0.82rem;
+      color: #7a8886;
+      margin: 0 0 4px;
+    }
+
+    .chapter-download {
+      margin-top: auto;
+    }
+
+    @media (max-width: 620px) {
+      .chapter-card {
+        grid-template-columns: 1fr;
+      }
+
+      .chapter-card img {
+        height: 150px;
+      }
+    }
+
+    .chapter-description {
+      font-size: 0.9rem;
+      color: #5a6b6a;
+      line-height: 1.6;
+      background: rgba(47, 93, 79, 0.04); /* 微弱的底色區隔 */
+      padding: 10px 14px;
+      border-left: 3px solid var(--moss);   /* 左側裝飾線 */
+      border-radius: 4px;
+      margin: 10px 0;
+      font-style: italic;                  /* 斜體表現心理狀態 */
+      word-wrap: break-word;               /* 自動斷行 */
+    }
+
+    /* 確保卡片內容垂直排列整齊 */
+    .chapter-body {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    .edit-btn { background:none; border:none; cursor:pointer; margin-left:8px; font-size:0.95rem }
+    .editable-input { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:8px; font-size:1rem; }
+    .editable-textarea { width:100%; min-height:80px; padding:8px; border:1px solid var(--line); border-radius:8px; font-size:0.95rem; }
+    .edit-actions { display:flex; gap:8px; margin-top:8px; }
+    .edit-save { background:var(--moss); color:white; border:none; padding:6px 10px; border-radius:8px; cursor:pointer; }
+    .edit-cancel { background:#f3f3f3; border:1px solid var(--line); padding:6px 10px; border-radius:8px; cursor:pointer; }
+
+    /* 群組分析區 */
+    .group-analysis { display: grid; grid-template-columns: 1fr; gap:12px; margin-bottom:14px; }
+    .trend-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-bottom:12px; }
+    .group-summary { display: grid; grid-template-columns: repeat(2,1fr); gap:8px; }
+    .group-summary .stat { background:#fff; padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); display:flex; justify-content:space-between; font-size:0.95rem; }
+    .thumb-stats { display:grid; grid-template-columns: repeat(4,1fr); gap:8px; }
+    .thumb-card { background:#fff; padding:8px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); text-align:center; font-size:0.85rem; }
+    .thumb-card img { width:100%; height:64px; object-fit:cover; border-radius:6px; margin-bottom:6px; }
+    /* 改為垂直列表：圖片在左、文字在右 */
+    .thumb-stats { display:flex; flex-direction:column; gap:10px; }
+    .thumb-card { display:flex; gap:12px; align-items:flex-start; padding:10px; text-align:left; }
+    .thumb-card img { width:96px; height:96px; object-fit:cover; border-radius:8px; flex-shrink:0; }
+    .thumb-info { display:flex; flex-direction:column; gap:6px; }
+    .thumb-info .thumb-title { font-weight:700; color:var(--ink); }
+    .thumb-info .thumb-sub { font-size:0.85rem; color:#7a8886; }
+    .thumb-info .thumb-desc { font-size:0.88rem; color:#5a6b6a; }
+    .thumb-info .thumb-stats { font-size:0.82rem; color:#556; display:flex; gap:8px; flex-wrap:wrap; }
+  </style>
+</head>
 
 <body>
 <div class="page-shell">
@@ -33,7 +285,7 @@
       <p class="page-subtitle">這裡收藏你在作畫空間留下的每一份情緒筆觸。你可以回看每一天的畫作，觀察自己在色彩、線條與節奏上的變化。</p>
 
       <div class="gallery-actions">
-        <a class="btn" href="Story.html">前往作畫空間</a>
+        <a class="btn" href="Story.html">前往作畫劇情</a>
         <button class="btn warn" id="clearAllBtn" type="button">清空所有作品</button>
       </div>
 
@@ -50,7 +302,7 @@
           <p id="detailSubtitle"></p>
         </div>
 
-        <!-- 該故事的趨勢圖 -->
+        <!-- 該故事的趨勢圖（同一頁顯示 3-4 個圖表） -->
         <div id="storyTrendSection" class="trend-charts" style="display:none;">
           <div class="chart-card">
             <h3>覆蓋率趨勢 (%)</h3><canvas id="sCoverageChart"></canvas>
@@ -59,11 +311,16 @@
             <h3>暖色比例趨勢 (%)</h3><canvas id="sWarmChart"></canvas>
           </div>
           <div class="chart-card">
-            <h3>筆劃數量趨勢</h3><canvas id="sStrokeChart"></canvas>
+            <h3>冷色比例趨勢 (%)</h3><canvas id="sCoolChart"></canvas>
           </div>
           <div class="chart-card">
-            <h3>偵測物件數量</h3><canvas id="sShapeChart"></canvas>
+            <h3>筆劃數量趨勢</h3><canvas id="sStrokeChart"></canvas>
           </div>
+        </div>
+
+        <!-- 群組分析：彙總已儲存的 stats -->
+        <div id="groupAnalysis" class="group-analysis">
+          <!-- 這裡將動態插入群組分析內容 -->
         </div>
 
         <!-- 章節作品清單 -->
@@ -77,21 +334,11 @@
       </div>
     </section>
   </main>
-
-  <section class="home-module reveal delay-3" aria-label="主頁作品布置">
-    <div class="module-head">
-      <h2>我的主頁布置</h2>
-      <button id="resetLayoutBtn" class="btn warn" type="button">重設位置</button>
-    </div>
-    <p class="module-tip">把作品卡片拖曳到下方布置區，位置會自動保存到這台裝置。</p>
-    <div id="layoutBoard" class="layout-board" aria-label="作品布置區"></div>
-    <h3 class="pool-title">作品清單</h3>
-    <div id="worksPool" class="works-pool" aria-label="可用作品清單"></div>
-  </section>
-  <script src="js/gallery.js"></script>
 </div>
 
-<script>
+<script type="module">
+  import { StorageManager } from './js/storageManager.js';
+
   const storageKey = "artEchoGallery";
   const emptyState = document.getElementById("emptyState");
   const folderView = document.getElementById("folderView");
@@ -99,9 +346,40 @@
   const detailView = document.getElementById("detailView");
   const clearAllBtn = document.getElementById("clearAllBtn");
 
+  // 新增編輯樣式
+  const style = document.createElement('style');
+  style.textContent = `
+    .edit-btn { background:none; border:none; cursor:pointer; margin-left:8px; font-size:0.95rem }
+    .editable-input { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:8px; font-size:1rem; }
+    .editable-textarea { width:100%; min-height:80px; padding:8px; border:1px solid var(--line); border-radius:8px; font-size:0.95rem; }
+    .edit-actions { display:flex; gap:8px; margin-top:8px; }
+    .edit-save { background:var(--moss); color:white; border:none; padding:6px 10px; border-radius:8px; cursor:pointer; }
+    .edit-cancel { background:#f3f3f3; border:1px solid var(--line); padding:6px 10px; border-radius:8px; cursor:pointer; }
+
+    /* 群組分析區 */
+    .group-analysis { display: grid; grid-template-columns: 1fr; gap:12px; margin-bottom:14px; }
+    .trend-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-bottom:12px; }
+    .group-summary { display: grid; grid-template-columns: repeat(2,1fr); gap:8px; }
+    .group-summary .stat { background:#fff; padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); display:flex; justify-content:space-between; font-size:0.95rem; }
+    .thumb-stats { display:grid; grid-template-columns: repeat(4,1fr); gap:8px; }
+    .thumb-card { background:#fff; padding:8px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); text-align:center; font-size:0.85rem; }
+    .thumb-card img { width:100%; height:64px; object-fit:cover; border-radius:6px; margin-bottom:6px; }
+    /* 改為垂直列表：圖片在左、文字在右 */
+    .thumb-stats { display:flex; flex-direction:column; gap:10px; }
+    .thumb-card { display:flex; gap:12px; align-items:flex-start; padding:10px; text-align:left; }
+    .thumb-card img { width:96px; height:96px; object-fit:cover; border-radius:8px; flex-shrink:0; }
+    .thumb-info { display:flex; flex-direction:column; gap:6px; }
+    .thumb-info .thumb-title { font-weight:700; color:var(--ink); }
+    .thumb-info .thumb-sub { font-size:0.85rem; color:#7a8886; }
+    .thumb-info .thumb-desc { font-size:0.88rem; color:#5a6b6a; }
+    .thumb-info .thumb-stats { font-size:0.82rem; color:#556; display:flex; gap:8px; flex-wrap:wrap; }
+  `;
+  document.head.appendChild(style);
+
   // 故事中文名稱對照表
+  // 預留舊的對照表作為 fallback（將以共用 Story.js 為主）
   const storyNames = {
-    snow_white: "白雪公主",
+    snow_white: "公主的等待",
   };
   const chapterTitles = {
     "1": "第一章", "2": "第二章", "3": "第三章", "4": "第四章"
@@ -110,22 +388,72 @@
   let chartInstances = [];
 
   function getWorks() {
+    // 使用 StorageManager 保持一致
     try {
+      return StorageManager.getAllWorks();
+    } catch (e) {
       const raw = localStorage.getItem(storageKey);
       if (!raw) return [];
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (e) {
-      return [];
+      try { return JSON.parse(raw); } catch (e) { return []; }
     }
   }
+
+  // 為舊資料產生 groupKey（若不存在），並寫回 storage
+  function ensureGroupKeys(works) {
+    // 統計已存在的 group counts per base
+    const counts = {};
+    for (const w of works) {
+      if (w.groupKey) {
+        const baseMatch = w.groupKey.match(/^(.*?)\s*\((\d+)\)$/);
+        const base = baseMatch ? baseMatch[1].trim() : w.groupKey;
+        counts[base] = counts[base] || 0;
+        counts[w.groupKey] = counts[w.groupKey] || 0;
+        counts[base]++;
+      }
+    }
+
+    let changed = false;
+    // 處理沒有 groupKey 的作品，依 storyId 或 scenarioId 當 base
+    for (const w of works) {
+      if (!w.groupKey) {
+        const base = w.storyId || w.scenarioId || 'unknown';
+        counts[base] = counts[base] || 0;
+        // 找可用 groupKey
+        let groupKey = base;
+        if (counts[base] >= 4) {
+          let idx = 1;
+          while ((counts[`${base} (${idx})`] || 0) >= 4) idx++;
+          groupKey = `${base} (${idx})`;
+        }
+        // 註冊並增加計數
+        counts[groupKey] = (counts[groupKey] || 0) + 1;
+        counts[base] = counts[base] + 1;
+        w.groupKey = groupKey;
+        // 寫回
+        try {
+          StorageManager.updateWork(w.id, { groupKey: groupKey });
+        } catch (e) {
+          // fallback: 全部一次寫回
+          changed = true;
+        }
+      }
+    }
+
+    if (changed) {
+      // fallback: 若未能逐筆更新，整批覆寫
+      localStorage.setItem(storageKey, JSON.stringify(works));
+    }
+    return works;
+  }
+
   /** 按故事分組 */
   function groupByStory(works) {
     const groups = {};
     for (const w of works) {
-      const sid = w.storyId || "unknown";
-      if (!groups[sid]) groups[sid] = [];
-      groups[sid].push(w);
+      // 使用 groupKey（save 時會自動產生），否則退回到 storyId
+      const gid = w.groupKey || w.storyId || w.scenarioId || "unknown";
+      if (!groups[gid]) groups[gid] = [];
+      groups[gid].push(w);
     }
     return groups;
   }
@@ -146,7 +474,9 @@
   }
   /* ============ 資料夾主路面 ============ */
   function renderFolders() {
-    const works = getWorks();
+    let works = getWorks();
+    // 為舊資料補上 groupKey（必要時），並取得最新 works
+    works = ensureGroupKeys(works) || works;
     folderGrid.innerHTML = "";
     detailView.classList.remove("active");
     folderView.style.display = "block";
@@ -160,7 +490,31 @@
 
     const groups = groupByStory(works);
 
-    for (const [storyId, storyWorks] of Object.entries(groups)) {
+    // 先將 groupKey 依 base (suffix) 排序，使同一劇情的群組連續顯示
+    const sortedKeys = Object.keys(groups).sort((a, b) => {
+      const aMatch = a.match(/^(.*?)\s*\((\d+)\)$/);
+      const bMatch = b.match(/^(.*?)\s*\((\d+)\)$/);
+      const aBase = aMatch ? aMatch[1] : a;
+      const bBase = bMatch ? bMatch[1] : b;
+      if (aBase === bBase) {
+        const aIdx = aMatch ? parseInt(aMatch[2]) : 0;
+        const bIdx = bMatch ? parseInt(bMatch[2]) : 0;
+        return aIdx - bIdx;
+      }
+      return aBase.localeCompare(bBase);
+    });
+
+    // 建立 base -> keys 的對應，用於顯示序號（若同 base 多於 1 個群組）
+    const baseMap = {};
+    for (const k of sortedKeys) {
+      const m = k.match(/^(.*?)\s*\((\d+)\)$/);
+      const base = m ? m[1].trim() : k;
+      baseMap[base] = baseMap[base] || [];
+      baseMap[base].push(k);
+    }
+
+    for (const groupKey of sortedKeys) {
+      const groupWorks = groups[groupKey];
       const card = document.createElement("div");
       card.className = "folder-card";
 
@@ -168,7 +522,7 @@
       const coverDiv = document.createElement("div");
       coverDiv.className = "folder-cover";
 
-      const thumbs = storyWorks.slice(-4);
+      const thumbs = groupWorks.slice(-4);
       if (thumbs.length === 1) {
         const wrap = document.createElement("div");
         wrap.className = "folder-cover-single";
@@ -192,7 +546,7 @@
       // 數量 badge
       const badge = document.createElement("span");
       badge.className = "folder-badge";
-      badge.textContent = `${storyWorks.length} 幅作品`;
+      badge.textContent = `${groupWorks.length} 幅作品`;
       coverDiv.appendChild(badge);
 
       const icon = document.createElement("span");
@@ -205,11 +559,34 @@
       info.className = "folder-info";
 
       const title = document.createElement("h3");
-      title.textContent = storyNames[storyId] || storyId;
+      // 從 groupKey 推回原始 storyId（如果命名帶 suffix，取 base），並以 Story.js 的 title 為主
+      let base = groupKey;
+      const suffixMatch = groupKey.match(/^(.*?)\s*\((\d+)\)$/);
+      let suffixNum = null;
+      if (suffixMatch) { base = suffixMatch[1].trim(); suffixNum = suffixMatch[2]; }
+      // 取得場景標題（若 Story.js 已載入，使用 window.getScenarioById）
+      let displayTitle = base;
+      try {
+        if (window.getScenarioById) {
+          const sc = window.getScenarioById(base);
+          if (sc && sc.title) displayTitle = sc.title;
+        }
+      } catch (e) {}
+      if (!displayTitle || displayTitle === '') displayTitle = storyNames[base] || base;
+      // 如果同 base 有多個群組，顯示序號（1,2,...），即使第一個也會顯示 1
+      const groupList = baseMap[base] || [];
+      if (groupList.length > 1) {
+        const idx = groupList.indexOf(groupKey);
+        displayTitle = `${displayTitle} (${idx + 1})`;
+      } else if (suffixNum) {
+        // 若只有一個群組但名稱本身帶後綴，保留後綴顯示
+        displayTitle = `${displayTitle} (${suffixNum})`;
+      }
+      title.textContent = displayTitle;
       info.appendChild(title);
 
       const desc = document.createElement("p");
-      const levels = [...new Set(storyWorks.map(w => w.level))];
+      const levels = [...new Set(groupWorks.map(w => w.level))];
       desc.textContent = `已完成章節：${levels.sort().map(l => chapterTitles[l] || `第${l}章`).join('、')}`;
       info.appendChild(desc);
 
@@ -224,31 +601,45 @@
 
       card.appendChild(coverDiv);
       card.appendChild(info);
-      card.onclick = () => openStoryDetail(storyId, storyWorks);
+      // 點擊時以 groupKey 開啟該群組
+      card.onclick = () => openStoryDetail(groupKey, groupWorks);
       folderGrid.appendChild(card);
     }
   }
 
   /* ============ 故事詳細頁 ============ */
-  function openStoryDetail(storyId, storyWorks) {
+  /* ============ 故事詳細頁 ============ */
+  function openStoryDetail(groupKey, storyWorks) {
     folderView.style.display = "none";
     detailView.classList.add("active");
 
-    // header
-    document.getElementById("detailTitle").textContent = `${storyNames[storyId] || storyId}`;
+    // 1. 設定 Header 標題
+    let base = groupKey;
+    const m = groupKey.match(/^(.+?)\s*\(\d+\)$/);
+    if (m) base = m[1];
+
+    let headerTitle = base;
+    try { if (window.getScenarioById) { const sc = window.getScenarioById(base); if (sc && sc.title) headerTitle = sc.title; } } catch (e) {}
+    if (!headerTitle || headerTitle === '') headerTitle = storyNames[base] || base;
+
+    document.getElementById("detailTitle").textContent = headerTitle;
     const levels = [...new Set(storyWorks.map(w => w.level))];
     document.getElementById("detailSubtitle").textContent =
             `共 ${storyWorks.length} 幅作品 · 已探索 ${levels.length}/4 章節`;
 
-    // charts
+    // 2. 清理並顯示趨勢圖表區
+    const trendSection = document.getElementById('storyTrendSection');
+    if (trendSection) {
+      trendSection.style.display = 'grid';
+    }
     destroyCharts();
     renderStoryCharts(storyWorks);
 
-    // chapter cards
+    // 3. 渲染章節列表 (改回左圖右文，且放大圖片)
     const list = document.getElementById("chapterList");
     list.innerHTML = "";
 
-    // sort by level then by time
+    // 依章節排序
     const sorted = storyWorks.slice().sort((a, b) => {
       if (a.level !== b.level) return a.level - b.level;
       return (a.id || 0) - (b.id || 0);
@@ -257,63 +648,121 @@
     sorted.forEach((work, idx) => {
       const card = document.createElement("div");
       card.className = "chapter-card";
+      // 強制使用 flex 橫向排列
+      card.style.display = "flex";
+      card.style.flexDirection = "row";
+      card.style.alignItems = "stretch";
 
-      // 畫作圖片
+      // --- 左側：放大圖片區 ---
       const img = document.createElement("img");
       img.src = work.dataUrl;
-      img.alt = work.name || "作品";
+      img.alt = work.name || "作品圖";
+      // 設定圖片寬度與高度，保持大尺寸
+      img.style.width = "300px";
+      img.style.height = "auto";
+      img.style.objectFit = "cover";
+      img.style.flexShrink = "0";
 
-      // 資訊區
+      // --- 右側：文字內容區 ---
       const body = document.createElement("div");
       body.className = "chapter-body";
+      body.style.flex = "1";
+      body.style.padding = "20px";
+
+      // A. 作品標題 (含編輯功能)
+      const titleRow = document.createElement('div');
+      titleRow.style.display = 'flex';
+      titleRow.style.alignItems = 'center';
+      titleRow.style.gap = '8px';
+      titleRow.style.marginBottom = '4px';
 
       const chTitle = document.createElement("h3");
-      chTitle.textContent = fallbackName(work, idx);
-      body.appendChild(chTitle);
+      chTitle.textContent = work.name && work.name.trim() ? work.name : fallbackName(work, idx);
+      chTitle.style.margin = "0";
+      titleRow.appendChild(chTitle);
 
+      const editTitleBtn = document.createElement('button');
+      editTitleBtn.className = 'edit-btn';
+      editTitleBtn.innerText = '✏️';
+      editTitleBtn.onclick = () => {
+        const input = document.createElement('input');
+        input.className = 'editable-input';
+        input.value = chTitle.textContent;
+        titleRow.replaceChild(input, chTitle);
+        input.focus();
+        input.onblur = () => {
+          const newVal = input.value.trim() || fallbackName(work, idx);
+          chTitle.textContent = newVal;
+          titleRow.replaceChild(chTitle, input);
+          StorageManager.updateWork(work.id, { name: newVal });
+        };
+      };
+      titleRow.appendChild(editTitleBtn);
+      body.appendChild(titleRow);
+
+      // B. 章節與時間
       const chSub = document.createElement("p");
       chSub.className = "chapter-subtitle";
-      chSub.textContent = `${chapterTitles[work.level] || '第' + work.level + '章'}`;
+      let timeStr = "";
       const time = new Date(work.id || work.createdAt);
-      if (!isNaN(time.getTime())) {
-        chSub.textContent += ` · ${time.toLocaleString("zh-Hant-TW", { hour12: false })}`;
-      }
+      if (!isNaN(time.getTime())) timeStr = ` · ${time.toLocaleString("zh-Hant-TW", { hour12: false })}`;
+      chSub.textContent = `${chapterTitles[work.level] || '第' + work.level + '章'}${timeStr}`;
       body.appendChild(chSub);
 
-      // 形狀標籤
+      // C. 標籤
       const tagsEl = document.createElement("div");
       tagsEl.className = "shape-tags";
-      for (const s of fallbackShapes(work)) {
-        const badge = document.createElement("span");
-        badge.className = "shape-badge";
-        badge.textContent = s.label;
-        tagsEl.appendChild(badge);
-      }
+      tagsEl.style.margin = "10px 0";
+      fallbackShapes(work).forEach(s => {
+        const b = document.createElement("span");
+        b.className = "shape-badge";
+        b.textContent = s.label;
+        tagsEl.appendChild(b);
+      });
       body.appendChild(tagsEl);
 
-      if (work.description) {
-        const descEl = document.createElement("p");
-        descEl.className = "chapter-description";
-        descEl.textContent = work.description;
-        body.appendChild(descEl);
-      }
+      // D. 情緒描述 (解釋區，含編輯功能)
+      const descWrapper = document.createElement('div');
+      descWrapper.style.position = 'relative';
+      const descEl = document.createElement("p");
+      descEl.className = "chapter-description";
+      descEl.textContent = work.description && work.description.trim() ? work.description : "點擊右側鉛筆新增關於這幅畫的情緒描述...";
+      descWrapper.appendChild(descEl);
 
-      // 數據行
-      if (work.stats) {
-        const sw = document.createElement("div");
-        sw.innerHTML = `
-            <div class="stat-row"><span>覆蓋率</span><span>${work.stats.coverage}%</span></div>
-            <div class="stat-row"><span>暖色佔比</span><span>${work.stats.warmRatio}%</span></div>
-            <div class="stat-row"><span>筆劃數</span><span>${work.stats.strokeCount} 劃</span></div>
-          `;
-        body.appendChild(sw);
-      }
+      const editDescBtn = document.createElement('button');
+      editDescBtn.className = 'edit-btn';
+      editDescBtn.innerText = '✏️';
+      editDescBtn.style.position = 'absolute';
+      editDescBtn.style.top = '0';
+      editDescBtn.style.right = '0';
+      editDescBtn.onclick = () => {
+        const ta = document.createElement('textarea');
+        ta.className = 'editable-textarea';
+        ta.value = work.description || '';
+        descWrapper.replaceChild(ta, descEl);
+        const actions = document.createElement('div'); actions.className = 'edit-actions';
+        const saveBtn = document.createElement('button'); saveBtn.className = 'edit-save'; saveBtn.textContent = '儲存';
+        actions.appendChild(saveBtn);
+        descWrapper.appendChild(actions);
 
-      // 下載
+        saveBtn.onclick = () => {
+          const newDesc = ta.value.trim();
+          descEl.textContent = newDesc || "點擊右側鉛筆新增...";
+          descWrapper.removeChild(actions);
+          descWrapper.replaceChild(descEl, ta);
+          StorageManager.updateWork(work.id, { description: newDesc });
+        };
+      };
+      descWrapper.appendChild(editDescBtn);
+      body.appendChild(descWrapper);
+
+      // E. 下載按鈕
       const dl = document.createElement("a");
       dl.className = "btn chapter-download";
+      dl.style.marginTop = "15px";
+      dl.style.width = "fit-content";
       dl.href = work.dataUrl;
-      dl.download = `artecho-${work.name || work.id || Date.now()}.png`;
+      dl.download = `artecho-${work.id}.png`;
       dl.textContent = "下載作品";
       body.appendChild(dl);
 
@@ -326,48 +775,38 @@
   /* ============ 故事內頁趨勢圖 ============ */
   function renderStoryCharts(works) {
     const section = document.getElementById("storyTrendSection");
-    if (works.length < 2) {
+    if (works.length < 1) {
       section.style.display = "none";
       return;
     }
     section.style.display = "grid";
 
     const sorted = works.slice().sort((a, b) => (a.level || 0) - (b.level || 0));
-    const labels = sorted.map(w => chapterTitles[w.level] || `第${w.level}章`);
+    const labels = sorted.map((w, i) => w.name && w.name.trim() ? (w.name) : (chapterTitles[w.level] || `第${w.level}章 ${i+1}`));
     const cov = sorted.map(w => w.stats ? parseFloat(w.stats.coverage) : 0);
     const warm = sorted.map(w => w.stats ? parseFloat(w.stats.warmRatio) : 0);
+    const cool = sorted.map(w => w.stats ? parseFloat(w.stats.coolRatio) : 0);
     const strk = sorted.map(w => w.stats ? parseInt(w.stats.strokeCount) : 0);
-    const shp = sorted.map(w => (w.shapes && w.shapes.length) ? w.shapes.length : 0);
 
-    const opt = {
+    const optLine = {
       responsive: true,
       plugins: { legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } },
-        x: { grid: { display: false } }
-      },
+      scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } },
       elements: { line: { tension: 0.35 }, point: { radius: 5, hoverRadius: 7 } }
     };
+    const optBar = Object.assign({}, optLine, { elements: { line: { tension: 0.2 } } });
 
     chartInstances.push(new Chart(document.getElementById('sCoverageChart'), {
-      type: 'line',
-      data: { labels, datasets: [{ data: cov, borderColor: '#2f5d4f', backgroundColor: 'rgba(47,93,79,0.08)', fill: true, borderWidth: 2 }] },
-      options: opt
+      type: 'line', data: { labels, datasets: [{ data: cov, borderColor: '#2f5d4f', backgroundColor: 'rgba(47,93,79,0.08)', fill: true, borderWidth: 2 }] }, options: optLine
     }));
     chartInstances.push(new Chart(document.getElementById('sWarmChart'), {
-      type: 'bar',
-      data: { labels, datasets: [{ data: warm, backgroundColor: 'rgba(198,107,61,0.6)', borderColor: '#c66b3d', borderWidth: 1, borderRadius: 6 }] },
-      options: opt
+      type: 'bar', data: { labels, datasets: [{ data: warm, backgroundColor: 'rgba(198,107,61,0.6)', borderColor: '#c66b3d', borderWidth: 1, borderRadius: 6 }] }, options: optBar
+    }));
+    chartInstances.push(new Chart(document.getElementById('sCoolChart'), {
+      type: 'bar', data: { labels, datasets: [{ data: cool, backgroundColor: 'rgba(96,134,220,0.6)', borderColor: '#6086dc', borderWidth: 1, borderRadius: 6 }] }, options: optBar
     }));
     chartInstances.push(new Chart(document.getElementById('sStrokeChart'), {
-      type: 'line',
-      data: { labels, datasets: [{ data: strk, borderColor: '#dcc9a7', backgroundColor: 'rgba(220,201,167,0.12)', fill: true, borderWidth: 2, borderDash: [5, 3] }] },
-      options: opt
-    }));
-    chartInstances.push(new Chart(document.getElementById('sShapeChart'), {
-      type: 'line',
-      data: { labels, datasets: [{ data: shp, borderColor: '#7a5ea7', backgroundColor: 'rgba(122,94,167,0.08)', fill: true, borderWidth: 2 }] },
-      options: opt
+      type: 'line', data: { labels, datasets: [{ data: strk, borderColor: '#dcc9a7', backgroundColor: 'rgba(220,201,167,0.12)', fill: true, borderWidth: 2, borderDash: [5, 3] }] }, options: optLine
     }));
   }
 
@@ -389,29 +828,6 @@
   });
 
   renderFolders();
-
-  document.addEventListener("DOMContentLoaded", function() {
-    // 啟動主頁佈置功能
-    if (typeof HomeLayoutManager !== "undefined") {
-      HomeLayoutManager.init({
-        worksPool: document.getElementById("worksPool"),
-        layoutBoard: document.getElementById("layoutBoard"),
-        resetBtn: document.getElementById("resetLayoutBtn")
-      });
-    }
-  });
-  function initPage() {
-    renderFolders();
-    // 如果未來有新增作品，也可以調用 HomeLayoutManager.loadData() 來同步
-  }
-
-  initPage();
 </script>
 </body>
 </html>
-
-
-
-
-
-
