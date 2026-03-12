@@ -1,6 +1,6 @@
 /**
  * ArtEcho 劇情與章節整合資料庫
- * 包含：主選單資訊 (Scenarios) 與 內部章節內容 (Chapters)
+ * 主選單資訊 (Scenarios) 與 內部章節內容 (Chapters)
  */
 window.ArtEchoScenarios = [
   {
