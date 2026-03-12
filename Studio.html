@@ -194,6 +194,8 @@
       };
 
       // 壓力渲染
+      const sensitivity = 1.5;
+      const baseScale = 0.5;
       const dynamicSize = currentStroke.size * (now.pressure * 1.5);
       const tempStroke = { ...currentStroke, size: dynamicSize };
 
