@@ -9,260 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="CSS/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="CSS/styles.css">
-  <style>
-    /* === 資料夾列表 === */
-    .folder-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 18px;
-      margin-top: 20px;
-    }
-    .folder-card {
-      border: 1.5px solid var(--line);
-      border-radius: 20px;
-      background: linear-gradient(145deg, #fffdf8, #faf3e6);
-      padding: 0;
-      cursor: pointer;
-      overflow: hidden;
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
-      position: relative;
-    }
-    .folder-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 28px -10px var(--shadow);
-    }
-
-    .folder-cover {
-      position: relative;
-      height: 160px;
-      overflow: hidden;
-      background: linear-gradient(135deg, var(--moss), rgba(47, 93, 79, 0.75));
-    }
-
-    .folder-cover-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      grid-template-rows: repeat(2, 1fr);
-      width: 100%;
-      height: 100%;
-    }
-
-    .folder-cover-grid img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.85;
-    }
-
-    .folder-cover-single {
-      width: 100%;
-      height: 100%;
-    }
-
-    .folder-cover-single img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.85;
-    }
-
-    .folder-badge {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: rgba(0, 0, 0, 0.55);
-      color: white;
-      font-size: 0.75rem;
-      padding: 3px 10px;
-      border-radius: 999px;
-      backdrop-filter: blur(4px);
-    }
-
-    .folder-icon {
-      position: absolute;
-      bottom: 10px;
-      left: 12px;
-      font-size: 1.6rem;
-      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
-    }
-
-    .folder-info {
-      padding: 14px 16px;
-    }
-
-    .folder-info h3 {
-      font-family: "Noto Serif TC", serif;
-      font-size: 1.1rem;
-      margin: 0 0 6px;
-      color: var(--ink);
-    }
-
-    .folder-info p {
-      font-size: 0.85rem;
-      color: #5a6b6a;
-      margin: 0;
-      line-height: 1.45;
-    }
-
-    .progress-bar {
-      height: 4px;
-      background: rgba(0, 0, 0, 0.06);
-      border-radius: 2px;
-      margin-top: 10px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--moss), var(--terracotta));
-      border-radius: 2px;
-      transition: width 0.4s ease;
-    }
-
-    /* === 詳細頁面（故事內頁） === */
-    .detail-view {
-      display: none;
-    }
-
-    .detail-view.active {
-      display: block;
-    }
-
-    .back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      background: #fffaf2;
-      color: var(--ink);
-      padding: 8px 16px;
-      font-size: 0.92rem;
-      cursor: pointer;
-      margin-bottom: 16px;
-      transition: background 0.2s;
-    }
-
-    .back-btn:hover {
-      background: rgba(232, 214, 181, 0.35);
-    }
-
-    .detail-header {
-      text-align: center;
-      padding: 28px 20px;
-      background: linear-gradient(120deg, rgba(47, 93, 79, 0.92), rgba(31, 67, 58, 0.94));
-      color: #fdf8ef;
-      border-radius: 20px;
-      margin-bottom: 20px;
-    }
-
-    .detail-header h2 {
-      font-family: "Noto Serif TC", serif;
-      font-size: 1.5rem;
-      margin: 0 0 6px;
-    }
-
-    .detail-header p {
-      font-size: 0.9rem;
-      margin: 0;
-      opacity: 0.85;
-    }
-
-    .chapter-list {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .chapter-card {
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: #fffdf8;
-      overflow: hidden;
-      display: block; /* 單欄顯示，不再在章節卡重複顯示圖片 */
-      min-height: 180px;
-    }
-
-    .chapter-body {
-      padding: 16px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .chapter-body h3 {
-      font-family: "Noto Serif TC", serif;
-      font-size: 1.05rem;
-      color: var(--ink);
-      margin: 0;
-    }
-
-    .chapter-body .chapter-subtitle {
-      font-size: 0.82rem;
-      color: #7a8886;
-      margin: 0 0 4px;
-    }
-
-    .chapter-download {
-      margin-top: auto;
-    }
-
-    @media (max-width: 620px) {
-      .chapter-card {
-        grid-template-columns: 1fr;
-      }
-
-      .chapter-card img {
-        height: 150px;
-      }
-    }
-
-    .chapter-description {
-      font-size: 0.9rem;
-      color: #5a6b6a;
-      line-height: 1.6;
-      background: rgba(47, 93, 79, 0.04); /* 微弱的底色區隔 */
-      padding: 10px 14px;
-      border-left: 3px solid var(--moss);   /* 左側裝飾線 */
-      border-radius: 4px;
-      margin: 10px 0;
-      font-style: italic;                  /* 斜體表現心理狀態 */
-      word-wrap: break-word;               /* 自動斷行 */
-    }
-
-    /* 確保卡片內容垂直排列整齊 */
-    .chapter-body {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-    }
-
-    .edit-btn { background:none; border:none; cursor:pointer; margin-left:8px; font-size:0.95rem }
-    .editable-input { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:8px; font-size:1rem; }
-    .editable-textarea { width:100%; min-height:80px; padding:8px; border:1px solid var(--line); border-radius:8px; font-size:0.95rem; }
-    .edit-actions { display:flex; gap:8px; margin-top:8px; }
-    .edit-save { background:var(--moss); color:white; border:none; padding:6px 10px; border-radius:8px; cursor:pointer; }
-    .edit-cancel { background:#f3f3f3; border:1px solid var(--line); padding:6px 10px; border-radius:8px; cursor:pointer; }
-
-    /* 群組分析區 */
-    .group-analysis { display: grid; grid-template-columns: 1fr; gap:12px; margin-bottom:14px; }
-    .trend-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-bottom:12px; }
-    .group-summary { display: grid; grid-template-columns: repeat(2,1fr); gap:8px; }
-    .group-summary .stat { background:#fff; padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); display:flex; justify-content:space-between; font-size:0.95rem; }
-    .thumb-stats { display:grid; grid-template-columns: repeat(4,1fr); gap:8px; }
-    .thumb-card { background:#fff; padding:8px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); text-align:center; font-size:0.85rem; }
-    .thumb-card img { width:100%; height:64px; object-fit:cover; border-radius:6px; margin-bottom:6px; }
-    /* 改為垂直列表：圖片在左、文字在右 */
-    .thumb-stats { display:flex; flex-direction:column; gap:10px; }
-    .thumb-card { display:flex; gap:12px; align-items:flex-start; padding:10px; text-align:left; }
-    .thumb-card img { width:96px; height:96px; object-fit:cover; border-radius:8px; flex-shrink:0; }
-    .thumb-info { display:flex; flex-direction:column; gap:6px; }
-    .thumb-info .thumb-title { font-weight:700; color:var(--ink); }
-    .thumb-info .thumb-sub { font-size:0.85rem; color:#7a8886; }
-    .thumb-info .thumb-desc { font-size:0.88rem; color:#5a6b6a; }
-    .thumb-info .thumb-stats { font-size:0.82rem; color:#556; display:flex; gap:8px; flex-wrap:wrap; }
-  </style>
+  <link rel="stylesheet" href="CSS/compa.css">
 </head>
 
 <body>
@@ -334,6 +81,17 @@
       </div>
     </section>
   </main>
+  <section class="home-module reveal delay-3" aria-label="主頁作品布置">
+    <div class="module-head">
+      <h2>我的主頁布置</h2>
+      <button id="resetLayoutBtn" class="btn warn" type="button">重設位置</button>
+    </div>
+    <p class="module-tip">把作品卡片拖曳到下方布置區，位置會自動保存到這台裝置。</p>
+    <div id="layoutBoard" class="layout-board" aria-label="作品布置區"></div>
+    <h3 class="pool-title">作品清單</h3>
+    <div id="worksPool" class="works-pool" aria-label="可用作品清單"></div>
+  </section>
+  <script src="js/gallery.js"></script>
 </div>
 
 <script type="module">
@@ -828,6 +586,23 @@
   });
 
   renderFolders();
+  document.addEventListener("DOMContentLoaded", function() {
+    // 啟動主頁佈置功能
+    if (typeof HomeLayoutManager !== "undefined") {
+      HomeLayoutManager.init({
+        worksPool: document.getElementById("worksPool"),
+        layoutBoard: document.getElementById("layoutBoard"),
+        resetBtn: document.getElementById("resetLayoutBtn")
+      });
+    }
+  });
+  function initPage() {
+    renderFolders();
+    // 如果未來有新增作品，也可以調用 HomeLayoutManager.loadData() 來同步
+  }
+
+  initPage();
 </script>
 </body>
 </html>
+
