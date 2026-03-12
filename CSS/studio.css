@@ -2,7 +2,6 @@
    ArtEcho Studio 專用樣式表
    包含：劇情容器、畫布佈局、工具列、AI 聊天及命名視窗
    ============================================================ */
-
 .scenario-container {
     background: var(--moss);
     color: white;
