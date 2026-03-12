@@ -1,6 +1,6 @@
 /**
  * ArtEcho 資料管理中心
- * 負責畫作儲存、讀取與資料格式統一
+ * 畫作儲存、讀取與資料格式統一
  */
 export const StorageManager = {
     DB_KEY: "artEchoGallery",
