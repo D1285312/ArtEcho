@@ -183,20 +183,18 @@
   canvas.onpointermove = (e) => {
     if (e.pointerType === 'touch') return;
     if (drawing) {
-      const last = currentStroke.points[currentStroke.points.length-1];
-      const now = {
+      const rawPressure = e.pressure || 0.5;
+      const adjustedPressure = Math.sqrt(rawPressure); // 使用平方根讓低壓區間更敏感
+      ctx.lineWidth = brushSize * (adjustedPressure * 1.5); // 增加一個係數 1.5 讓整體更粗
+      if (ctx.lineWidth < 1) ctx.lineWidth = 1;
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.stroke();
+      drawingSteps.push({
         x: e.offsetX,
         y: e.offsetY,
-        pressure: e.pressure || 0.5,
-        t: Date.now()
-      };
-
-      // 壓力渲染
-      const dynamicSize = currentStroke.size * (now.pressure * 1.5);
-      const tempStroke = { ...currentStroke, size: dynamicSize };
-
-      BrushEngine.drawStep(ctx, tempStroke, now, last);
-      currentStroke.points.push(now);
+        pressure: rawPressure,
+        time: Date.now()
+      });
     }
   };
 
