@@ -1,4 +1,4 @@
-// 簡易 Express 後端：處理 /api/send-code 與 /api/login（含寄信）
+//  Express 後端：處理 /api/send-code 與 /api/login（含寄信）
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
