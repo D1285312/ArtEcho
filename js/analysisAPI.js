@@ -1,6 +1,6 @@
 /**
  * ArtEcho 物理數據分析 API
- * 負責從畫布提取客觀物理參數、形狀偵測、名稱生成
+ * 從畫布提取客觀物理參數、形狀偵測、名稱生成
  */
 export const AnalysisAPI = {
     getPhysicalStats(ctx, width, height, drawingSteps) {
