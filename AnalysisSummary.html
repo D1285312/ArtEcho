@@ -145,7 +145,6 @@
 
         const levels = ["1", "2", "3", "4"];
         const labels = ["第一章", "第二章", "第三章", "第四章"];
-
         const getStat = (l, key) => (levelData[l] && levelData[l].stats) ? parseFloat(levelData[l].stats[key]) : 0;
         const getDuration = (l) => levelData[l] ? parseInt(levelData[l].duration) : 0;
 
