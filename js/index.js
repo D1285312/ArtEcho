@@ -1,7 +1,7 @@
 (function () {
   /**
    * 1. 元素選取
-   * 這裡改為獨立獲取，避免其中一個不存在就導致整個腳本停止
+   * 改為獨立獲取，避免其中一個不存在就導致整個腳本停止
    */
   var tickerText = document.getElementById("careTickerText");
   var tickerToggleBtn = document.getElementById("tickerToggleBtn");
