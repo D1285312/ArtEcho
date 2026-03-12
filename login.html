@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>ArtEcho | 登入</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="CSS/compa.css">
+	<style>
+		/* 頁面內小型樣式，與主題風格一致 */
+		.auth-wrap {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 60vh;
+		}
+		.auth-panel {
+			width: min(520px, 96%);
+			border: 1px solid var(--line);
+			border-radius: 18px;
+			padding: 26px;
+			background: rgba(255,250,243,0.9);
+			box-shadow: 0 18px 30px -22px var(--shadow);
+		}
+		.auth-form label {
+			display: block;
+			font-size: 0.95rem;
+			margin-bottom: 8px;
+		}
+		.auth-form input[type="text"],
+		.auth-form input[type="password"],
+		.auth-form input[type="tel"] {
+			width: 100%;
+			padding: 10px 12px;
+			border-radius: 10px;
+			border: 1px solid var(--line);
+			background: #fffdf8;
+			font-size: 0.95rem;
+			outline: none;
+		}
+		.auth-form input:focus {
+			box-shadow: 0 6px 18px -12px var(--shadow);
+			border-color: #b69e71;
+		}
+		.form-row { margin-bottom: 14px; }
+		.form-actions { display:flex; gap:10px; align-items:center; justify-content:space-between; margin-top:12px; }
+		.btn.primary { background: var(--moss); color: #fffaf1; border-color: transparent; }
+		.small-link { font-size: 0.92rem; color: #4f595f; text-decoration: none; }
+		#form-msg { display:block; margin-top:8px; color:#4f595f; font-size:0.92rem; }
+	</style>
+</head>
+<body>
+	<div class="page-shell">
+		<header class="site-header reveal">
+			<nav class="nav-wrap" aria-label="主要導覽">
+				<a class="brand" href="index.html"><span class="brand-dot" aria-hidden="true"></span>ArtEcho</a>
+				<div class="nav-links">
+					<a class="nav-btn" href="index.html">主頁</a>
+					<a class="nav-btn" href="Gallery.html">個人畫廊</a>
+					<a class="nav-btn" href="Story.html">劇情繪畫</a>
+					<a class="nav-btn" href="Cloud_space.html">雲端畫廊</a>
+					<a class="nav-btn active" href="login.html">登入</a>
+				</div>
+			</nav>
+		</header>
+
+		<main>
+			<section class="hero reveal delay-1">
+				<h1 class="page-title">歡迎回到 ArtEcho</h1>
+				<p class="page-subtitle">請使用您的帳號登入，或建立新帳號開始創作與記錄心情。</p>
+			</section>
+
+			<div class="auth-wrap">
+				<div class="auth-panel">
+					<form id="authForm" class="auth-form" action="#" method="post" aria-label="登入表單">
+						<div class="form-row">
+							<label for="account">帳號（電子郵件）</label>
+							<input id="account" name="account" type="text" placeholder="請輸入電子郵件或帳號" required>
+						</div>
+
+						<div class="form-row">
+							<label for="password">密碼</label>
+							<input id="password" name="password" type="password" placeholder="請輸入密碼" required>
+						</div>
+
+						<!-- 驗證碼容器，初始隱藏 -->
+						<div id="code-container" class="form-row" style="display:none;">
+							<label for="verifyCode">驗證碼</label>
+							<input id="verifyCode" name="verifyCode" type="text" inputmode="numeric" pattern="\d*" placeholder="請輸入信箱收到的驗證碼">
+						</div>
+
+						<span id="form-msg" aria-live="polite"></span>
+
+						<div class="form-actions">
+							<button id="actionBtn" type="button" class="btn primary">驗證</button>
+							<div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+								<a class="small-link" href="#">忘記密碼？</a>
+								<a class="small-link" href="Studio.html">註冊帳號</a>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</main>
+	</div>
+
+	<script>
+		// 簡單兩階段流程：verify -> login
+		// 注意：未直接使用 form 物件，故不宣告以避免 lint 警告
+		const actionBtn = document.getElementById('actionBtn');
+		const accountInput = document.getElementById('account');
+		const passwordInput = document.getElementById('password');
+		const codeContainer = document.getElementById('code-container');
+		const codeInput = document.getElementById('verifyCode');
+		const formMsg = document.getElementById('form-msg');
+		let stage = 'verify'; // or 'login'
+
+		actionBtn.addEventListener('click', async (e) => {
+			e.preventDefault();
+			formMsg.textContent = '';
+			const account = accountInput.value.trim();
+			const password = passwordInput.value;
+			if (!account || !password) {
+				formMsg.textContent = '請先輸入帳號與密碼。';
+				return;
+			}
+
+			if (stage === 'verify') {
+				// 嘗試呼叫後端 API 寄送驗證碼；如無後端則模擬成功
+				actionBtn.disabled = true;
+				actionBtn.textContent = '寄送中...';
+				try {
+					const resp = await fetch('/api/send-code', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ account, password })
+					});
+					if (resp.ok) {
+						formMsg.textContent = '驗證碼已寄出，請至信箱查收。';
+					} else {
+						// 若後端回傳錯誤，顯示訊息但仍開啟驗證輸入以供測試
+						formMsg.textContent = '伺服器未回應成功，已開啟驗證欄供測試。';
+					}
+				} catch (err) {
+					// 無法連線時模擬寄送成功（開發環境友好）
+					formMsg.textContent = '已模擬寄出驗證碼（開發模式），請輸入任一驗證碼以繼續。';
+				}
+
+				// 顯示驗證碼欄位，並切換按鈕為登入
+				codeContainer.style.display = 'block';
+				actionBtn.disabled = false;
+				actionBtn.textContent = '登入';
+				stage = 'login';
+				codeInput.focus();
+				return;
+			}
+
+			if (stage === 'login') {
+				const code = codeInput.value.trim();
+				if (!code) {
+					formMsg.textContent = '請輸入驗證碼以完成登入。';
+					return;
+				}
+
+				// 嘗試呼叫登入 API；若無後端則模擬登入成功
+				actionBtn.disabled = true;
+				actionBtn.textContent = '登入中...';
+				try {
+					const resp = await fetch('/api/login', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ account, password, code })
+					});
+					if (resp.ok) {
+						formMsg.textContent = '登入成功，正在跳轉...';
+						// 若後端回傳導向位置，可在此處處理
+						setTimeout(() => { window.location.href = 'index.html'; }, 900);
+					} else {
+						formMsg.textContent = '登入失敗：驗證碼或帳密錯誤。';
+						actionBtn.disabled = false;
+						actionBtn.textContent = '登入';
+					}
+				} catch (err) {
+					// 模擬成功登入（開發模式）
+					formMsg.textContent = '已模擬登入成功（開發模式），正在跳轉...';
+					setTimeout(() => { window.location.href = 'index.html'; }, 900);
+				}
+			}
+		});
+	</script>
+</body>
+</html>
