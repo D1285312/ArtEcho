@@ -1,5 +1,5 @@
 /**
- * ArtEcho 資料管理中心
+ * 資料管理中心
  * 畫作儲存、讀取與資料格式統一
  */
 export const StorageManager = {
