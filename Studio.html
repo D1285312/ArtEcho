@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArtEcho | 專業觸控筆空間</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="CSS/styles.css">
+  <link rel="stylesheet" href="CSS/studio.css">
+</head>
+<body>
+<div id="aiModal" class="ai-modal">
+  <div class="ai-box">
+    <h3 style="margin-bottom:15px; font-family:'Noto Serif TC', serif;">🤖 ArtEcho 心理引導</h3>
+    <div id="chatHistory" class="chat-history"></div>
+    <div class="ai-input-row">
+      <textarea id="aiUserResponse" class="ai-input" placeholder="回覆 AI 的引導..."></textarea>
+      <button class="cta-btn primary" id="sendMsgBtn" style="padding: 0 20px;">傳送</button>
+    </div>
+    <button class="cta-btn" id="finishChapterBtn" style="margin-top:15px; font-size:0.85rem; text-decoration:underline; background:none; border:none; cursor:pointer; color:var(--ink);">結束對話並前往下一章</button>
+  </div>
+</div>
+
+<div id="saveModal" class="ai-modal">
+  <div class="ai-box">
+    <h3 style="margin-bottom:15px; font-family:'Noto Serif TC', serif;">✨ 為這份情緒命名</h3>
+    <div class="control-group">
+      <label>作品名稱</label>
+      <input type="text" id="workNameInput" class="ai-input" placeholder="例如：雨後的寧靜...">
+    </div>
+    <div class="control-group" style="margin-top:15px;">
+      <label>情緒簡介</label>
+      <textarea id="workDescInput" class="ai-input" style="height:120px;" placeholder="寫下你的心情，或是讓 AI 幫你生成..."></textarea>
+    </div>
+    <div class="save-modal-actions">
+      <button class="btn" id="aiGenDescBtn" style="background:var(--moss); color:white;">🪄 AI 生成簡介</button>
+      <button class="cta-btn primary" id="confirmSaveBtn">確認存入畫廊</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-shell">
+  <header class="site-header">
+    <nav class="nav-wrap">
+      <a class="brand" href="index.html"><span class="brand-dot"></span>ArtEcho</a>
+      <div class="nav-links">
+        <a class="nav-btn" href="index.html">主頁</a>
+        <a class="nav-btn" href="Gallery.html">個人雲端藝術庫</a>
+        <a class="nav-btn active" href="Story.html">劇情繪畫</a>
+        <a class="nav-btn" href="Cloud_space.html">公開藝術畫廊</a>
+        <a class="nav-btn" href="login.html">登入</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="panel">
+    <div class="scenario-container">
+      <img id="scenarioImg" src="" class="scenario-img" alt="情境圖">
+      <div class="scenario-text">
+        <h2 id="scenarioTitle">載入中...</h2>
+        <p id="scenarioDesc">準備故事情節...</p>
+      </div>
+    </div>
+
+    <div class="studio-layout">
+      <div class="canvas-wrap">
+        <canvas id="paintCanvas"></canvas>
+        <div id="playbackIndicator" class="playback-overlay">正在重現筆跡...</div>
+      </div>
+
+      <aside class="toolbar">
+        <h3>🖌️ 畫筆箱</h3>
+        <div class="brush-type-grid" id="brushSelector">
+          <div class="brush-opt active" data-type="marker"><span>🖊️</span>彩色筆</div>
+          <div class="brush-opt" data-type="watercolor"><span>💧</span>水彩筆</div>
+          <div class="brush-opt" data-type="crayon"><span>🖍️</span>蠟筆</div>
+          <div class="brush-opt" data-type="spray"><span>💨</span>噴漆</div>
+          <div class="brush-opt" data-type="oil"><span>🎨</span>油畫筆</div>
+          <div class="brush-opt" data-type="sketch"><span>✏️</span>素描鉛筆</div>
+        </div>
+        <div class="control-group">
+          <label>顏色與粗細</label>
+          <div class="color-input-wrapper"><input id="colorPicker" type="color" value="#2f5d4f"></div>
+          <div class="brush-size-row"><input id="brushSize" type="range" min="1" max="50" value="8"><span id="brushSizeText">8 px</span></div>
+        </div>
+        <div class="control-group">
+          <div style="display:flex; gap:8px; margin-bottom: 15px;">
+            <button class="btn icon-btn active-mode" id="brushBtn"><span class="material-symbols-outlined">edit</span></button>
+            <button class="btn icon-btn" id="eraserBtn"><span class="material-symbols-outlined">ink_eraser</span></button>
+            <button class="btn icon-btn" id="undoBtn"><span class="material-symbols-outlined">undo</span></button>
+            <button class="btn icon-btn" id="playbackBtn"><span class="material-symbols-outlined" id="playbackIcon">play_circle</span></button>
+            <button class="btn icon-btn warn" id="clearBtn"><span class="material-symbols-outlined">delete</span></button>
+          </div>
+        </div>
+        <button class="cta-btn primary" id="analyzeBtn" style="width:100%;">讀取物理數據</button>
+        <div class="analysis-panel" id="analysisDisplay" style="display:none;">
+          <div id="resultsArea"></div>
+          <button class="cta-btn" id="startTalkBtn" style="width:100%; margin-top:15px; background:var(--terracotta); color:white; border:none;">與 AI 聊聊心情</button>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<script src="js/Story.js"></script>
+<script type="module">
+  import { AnalysisAPI } from './js/analysisAPI.js';
+  import { GeminiService } from './js/geminiService.js';
+  import { BrushEngine } from './js/brushEngine.js';
+  import { StorageManager } from './js/storageManager.js';
+
+  const canvas = document.getElementById("paintCanvas");
+  const ctx = canvas.getContext("2d");
+
+  let drawing = false, isEraser = false, history = [], drawingSteps = [], currentStroke = null;
+  let brushType = 'marker', isPlaying = false, currentStrokeIdx = 0, currentPointIdx = 0, animationId = null;
+  let chatLog = [];
+  let startTime = null;
+  let currentScenarioId = 'snow_white';
+  let currentChapterLevel = '1';
+  let currentScenarioTitle = '';
+
+  function getUrlParam(key, defaultValue) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(key) || defaultValue;
+  }
+
+  function loadContent() {
+    currentScenarioId = getUrlParam('scenario', 'snow_white');
+    currentChapterLevel = getUrlParam('chapter', '1');
+    if (window.getChapterData) {
+      const data = window.getChapterData(currentScenarioId, currentChapterLevel);
+      if (data) {
+        currentScenarioTitle = data.title;
+        document.getElementById("scenarioTitle").textContent = '📍 ' + data.title;
+        document.getElementById("scenarioDesc").textContent = data.desc;
+        document.getElementById("scenarioImg").src = data.img;
+      }
+    }
+  }
+
+  function initCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width; canvas.height = rect.height;
+    ctx.fillStyle = "#fffdfa"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  document.querySelectorAll('.brush-opt').forEach(opt => {
+    opt.onclick = () => {
+      document.querySelector('.brush-opt.active').classList.remove('active');
+      opt.classList.add('active');
+      brushType = opt.dataset.type;
+      isEraser = false;
+      document.getElementById("brushBtn").classList.add("active-mode");
+      document.getElementById("eraserBtn").classList.remove("active-mode");
+    };
+  });
+
+  // 🌟 核心繪圖邏輯：區分筆尖與壓力
+  canvas.onpointerdown = (e) => {
+    if (e.pointerType === 'touch') return; // 僅限筆尖
+
+    // 🌟 關鍵修正：在回放中途下筆，必須先確實停下動畫並清理標籤
+    if (isPlaying) stopPlayback(true);
+    if (!startTime || startTime === 0) {
+      startTime = Date.now();
+    }
+
+    // 存下目前的畫布快照，這是 Undo 的基準
+    history.push(canvas.toDataURL());
+
+    drawing = true;
+    currentStroke = {
+      type: isEraser ? 'marker' : brushType,
+      color: isEraser ? "#fffdfa" : document.getElementById("colorPicker").value,
+      size: parseInt(document.getElementById("brushSize").value),
+      points: [{ x: e.offsetX, y: e.offsetY, pressure: e.pressure || 0.5, t: Date.now() }]
+    };
+    canvas.setPointerCapture(e.pointerId);
+  };
+
+  canvas.onpointermove = (e) => {
+    if (e.pointerType === 'touch') return;
+    if (drawing) {
+      const last = currentStroke.points[currentStroke.points.length-1];
+      const now = {
+        x: e.offsetX,
+        y: e.offsetY,
+        pressure: e.pressure || 0.5,
+        t: Date.now()
+      };
+
+      // 壓力渲染
+      const sensitivity = 2.5;
+      const baseScale = 0.5;
+      const dynamicSize = currentStroke.size * (now.pressure * 1.5);
+      const tempStroke = { ...currentStroke, size: dynamicSize };
+
+      BrushEngine.drawStep(ctx, tempStroke, now, last);
+      currentStroke.points.push(now);
+    }
+  };
+
+  canvas.onpointerup = (e) => {
+    if (drawing) {
+      drawingSteps.push(currentStroke);
+      drawing = false;
+      canvas.releasePointerCapture(e.pointerId);
+      currentStrokeIdx = 0;
+      currentPointIdx = 0;
+    }
+  };
+
+  document.getElementById("analyzeBtn").onclick = () => {
+    if (!drawingSteps || drawingSteps.length === 0) {
+      alert("畫布還是空的喔！請先畫些東西再進行分析。");
+      return;
+    }
+    document.getElementById("analysisDisplay").style.display = "block";
+    const stats = AnalysisAPI.getPhysicalStats(ctx, canvas.width, canvas.height, drawingSteps);
+
+    let totalSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+
+    const formatTime = (s) => {
+      if (s < 0 || s > 86400) return "0分0秒";
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${m}分${sec}秒`;
+    };
+
+    document.getElementById("resultsArea").innerHTML = `
+    <div class="analysis-item"><span>作畫總時長</span><span>${formatTime(totalSeconds)}</span></div>
+    <div class="analysis-item"><span>畫布填滿面積</span><span>${stats.coverage}%</span></div>
+    <div class="analysis-item"><span>暖色像素佔比</span><span>${stats.warmRatio}%</span></div>
+    <div class="analysis-item"><span>冷色像素佔比</span><span>${stats.coolRatio}%</span></div>
+    <div class="analysis-item"><span>空間重心 (左側)</span><span>${stats.leftWeight}%</span></div>
+    <div class="analysis-item"><span>筆路徑數量</span><span>${stats.strokeCount} 劃</span></div>
+    <div class="analysis-item" style="color:var(--terracotta); font-weight:700;"><span>平均下筆壓力</span><span>${stats.avgPressure}</span></div>
+    <div class="analysis-item" style="color:var(--terracotta); font-weight:700;"><span>猶豫路徑佔比</span><span>${stats.hesitationRatio}%</span></div>
+  `;
+  };
+
+  async function callGemini(userInput = "") {
+    const stats = AnalysisAPI.getPhysicalStats(ctx, canvas.width, canvas.height, drawingSteps);
+    const scenarioTitle = document.getElementById("scenarioTitle").textContent;
+    const prompt = `你是一位藝術心理導師。情境：${scenarioTitle}。數據：填滿率${stats.coverage}%。可以先請使用者解釋一下畫作，請不要稱讚，針對數據提出一個深度反問，引導使用者自我察覺，限40字。`;
+
+    GeminiService.call({
+      systemPrompt: prompt, userMessage: userInput, chatHistory: chatLog,
+      onLoading: (isLoading) => {
+        const hist = document.getElementById("chatHistory");
+        if (isLoading) {
+          const div = document.createElement("div");
+          div.className = "msg msg-ai"; div.id = "ai-loading";
+          div.innerHTML = `<div class="dots-loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+          hist.appendChild(div); hist.scrollTop = hist.scrollHeight;
+        } else {
+          const loader = document.getElementById("ai-loading");
+          if (loader) loader.remove();
+        }
+      },
+      onSuccess: (formattedText, rawText) => {
+        chatLog.push({ role: 'ai', text: rawText });
+        appendMsg('ai', formattedText);
+      }
+    });
+  }
+
+  function appendMsg(role, text) {
+    const h = document.getElementById("chatHistory");
+    const d = document.createElement("div"); d.className = `msg msg-${role}`;
+    d.innerHTML = text; h.appendChild(d); h.scrollTop = h.scrollHeight;
+  }
+
+  document.getElementById("finishChapterBtn").onclick = () => {
+    document.getElementById("aiModal").style.display = "none";
+
+    const saveModal = document.getElementById("saveModal");
+    if (saveModal) {
+      saveModal.style.display = "flex";
+
+      // 自動生成名稱
+      const stats = AnalysisAPI.getPhysicalStats(ctx, canvas.width, canvas.height, drawingSteps);
+      document.getElementById("workNameInput").value = AnalysisAPI.generateName(stats, null);
+    }
+  };
+
+  document.getElementById("confirmSaveBtn").onclick = () => {
+    const name = document.getElementById("workNameInput").value.trim() || "未命名作品";
+    const desc = document.getElementById("workDescInput").value.trim() || "";
+    const totalSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+
+    try {
+      // 🌟 關鍵修正：確保參數名稱與 StorageManager 一致
+      StorageManager.saveWork({
+        dataUrl: canvas.toDataURL(),
+        chatLog: chatLog,
+        startTime: startTime,
+        duration: totalSeconds,
+        storyId: currentScenarioId,
+        storyTitle: currentScenarioTitle,
+        level: currentChapterLevel,
+        stats: AnalysisAPI.getPhysicalStats(ctx, canvas.width, canvas.height, drawingSteps),
+        name: name,
+        description: desc
+      });
+      console.log("作品已成功存入 LocalStorage");
+    } catch (e) {
+      console.error("儲存過程發生錯誤:", e);
+    }
+
+    const nextLevel = parseInt(currentChapterLevel) + 1;
+    if (nextLevel <= 4) {
+      window.location.href = `Studio.html?scenario=${currentScenarioId}&chapter=${nextLevel}`;
+    } else {
+      alert("太棒了！你/妳已經完成了所有章節。即將進入回顧與總結。");
+      window.location.href = "AnalysisSummary.html";
+    }
+  };
+
+  document.getElementById("aiGenDescBtn").onclick = async () => {
+    const btn = document.getElementById("aiGenDescBtn");
+    const originalText = btn.textContent;
+    btn.textContent = "生成中...";
+    btn.disabled = true;
+
+    const conversation = chatLog.map(m => `${m.role === 'ai' ? 'AI' : '我'}: ${m.text}`).join('\n');
+    const genPrompt = `你是一位溫柔、平易近人的藝術治療師。根據以下對話摘要，為使用者的畫作寫一段溫暖(以使用者的第一人稱視角)、具備心理洞察力的簡介（約 50 字內，不要有標題）。\n\n對話內容：\n${conversation}`;
+
+    try {
+      await GeminiService.call({
+        systemPrompt: genPrompt,
+        userMessage: "請幫我寫簡介。",
+        chatHistory: [],
+        onSuccess: (formatted, raw) => {
+          document.getElementById("workDescInput").value = raw.trim();
+          btn.textContent = originalText;
+          btn.disabled = false;
+        },
+        onError: (err) => {
+          alert("生成失敗：" + err);
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }
+      });
+    } catch (e) {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  };
+
+  function playNext() {
+    if (!isPlaying || currentStrokeIdx >= drawingSteps.length) {
+      if (currentStrokeIdx >= drawingSteps.length) stopPlayback(true);
+      return;
+    }
+
+    const s = drawingSteps[currentStrokeIdx];
+
+    if (currentPointIdx > 0) {
+      const p = s.points[currentPointIdx];
+      const prev = s.points[currentPointIdx - 1];
+      const dynamicStroke = { ...s, size: s.size * (p.pressure * 1.5) };
+      BrushEngine.drawStep(ctx, dynamicStroke, p, prev);
+    }
+
+    currentPointIdx++;
+
+    if (currentPointIdx >= s.points.length) {
+      currentStrokeIdx++;
+      currentPointIdx = 0;
+    }
+
+    animationId = requestAnimationFrame(playNext);
+  }
+
+  function startPlayback() {
+    if (currentStrokeIdx >= drawingSteps.length || (currentStrokeIdx === 0 && currentPointIdx === 0)) {
+      // 執行清空畫布，從第一筆開始播
+      ctx.fillStyle = "#fffdfa";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      currentStrokeIdx = 0;
+      currentPointIdx = 0;
+    }
+
+    isPlaying = true;
+    document.getElementById("playbackIcon").textContent = "pause_circle";
+    document.getElementById("playbackIndicator").style.display = "block";
+    playNext();
+  }
+
+  function stopPlayback() {
+    isPlaying = false;
+    cancelAnimationFrame(animationId);
+    animationId = null;
+
+    document.getElementById("playbackIcon").textContent = "play_circle";
+
+    document.getElementById("playbackIndicator").style.display = "none";
+  }
+
+  document.getElementById("playbackBtn").onclick = () => {
+    if (drawingSteps.length === 0) return;
+
+    if (isPlaying) {
+      stopPlayback();
+    } else {
+      startPlayback();
+    }
+  };
+
+  document.getElementById("undoBtn").onclick = () => {
+    stopPlayback(true);
+
+    let lastSnapshot = history.pop();
+    if (lastSnapshot) {
+      let img = new Image();
+      img.onload = () => {
+        ctx.fillStyle = "#fffdfa";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+      };
+      img.src = lastSnapshot;
+
+      if (drawingSteps.length > 0) {
+        drawingSteps.pop();
+      }
+
+      currentStrokeIdx = 0;
+      currentPointIdx = 0;
+    }
+  };
+
+  document.getElementById("clearBtn").onclick = () => {
+    if(confirm("確定清空？")) {
+      stopPlayback(true); initCanvas();
+      drawingSteps = []; history = []; startTime = null;
+      currentStrokeIdx = 0; currentPointIdx = 0;
+      document.getElementById("analysisDisplay").style.display = "none";
+    }
+  };
+
+  document.getElementById("brushSize").oninput = (e) => { document.getElementById("brushSizeText").textContent = `${e.target.value} px`; };
+  document.getElementById("brushBtn").onclick = () => { isEraser = false; document.getElementById("brushBtn").classList.add("active-mode"); document.getElementById("eraserBtn").classList.remove("active-mode"); };
+  document.getElementById("eraserBtn").onclick = () => { isEraser = true; document.getElementById("eraserBtn").classList.add("active-mode"); document.getElementById("brushBtn").classList.remove("active-mode"); };
+  document.getElementById("startTalkBtn").onclick = () => { document.getElementById("aiModal").style.display = "flex"; document.getElementById("chatHistory").innerHTML = ""; callGemini(""); };
+  document.getElementById("sendMsgBtn").onclick = () => {
+    const input = document.getElementById("aiUserResponse");
+    const text = input.value.trim(); if (!text) return;
+    appendMsg('user', text); chatLog.push({ role: 'user', text: text });
+    input.value = ""; callGemini(text);
+  };
+
+  window.onload = () => { initCanvas(); loadContent(); };
+</script>
+</body>
+
+</html>

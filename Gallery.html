@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArtEcho | 個人畫廊</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="CSS/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="CSS/compa.css">
+</head>
+<body>
+<div class="page-shell">
+  <header class="site-header reveal">
+    <nav class="nav-wrap" aria-label="主要導覽">
+      <a class="brand" href="index.html"><span class="brand-dot" aria-hidden="true"></span>ArtEcho</a>
+      <div class="nav-links">
+        <a class="nav-btn" href="index.html">主頁</a>
+        <a class="nav-btn active" href="Gallery.html">個人雲端藝術庫</a>
+        <a class="nav-btn" href="Story.html">劇情繪畫</a>
+        <a class="nav-btn" href="Cloud_space.html">公開藝術畫廊</a>
+        <a class="nav-btn" href="login.html">登入</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="panel reveal delay-1">
+      <h1 class="page-title">個人的畫廊</h1>
+      <p class="page-subtitle">這裡收藏你在作畫空間留下的每一份情緒筆觸。你可以回看每一天的畫作，觀察自己在色彩、線條與節奏上的變化。</p>
+
+      <div class="gallery-actions">
+        <a class="btn" href="Story.html">前往作畫劇情</a>
+        <button class="btn warn" id="clearAllBtn" type="button">清空所有作品</button>
+      </div>
+
+      <!-- ====== 資料夾主畫面 ====== -->
+      <div id="folderView">
+        <div id="folderGrid" class="folder-grid"></div>
+      </div>
+
+      <!-- ====== 故事詳細頁 ====== -->
+      <div id="detailView" class="detail-view">
+        <button class="back-btn" id="backBtn">← 返回畫廊</button>
+        <div class="detail-header" id="detailHeader">
+          <h2 id="detailTitle"></h2>
+          <p id="detailSubtitle"></p>
+        </div>
+
+        <div style="margin: 12px 0 18px 0;">
+          <button class="btn" id="openFullReportBtn" type="button">查看完整創作全維度報告</button>
+        </div>
+        <!-- 該故事的趨勢圖（同一頁顯示 3-4 個圖表） -->
+        <div id="storyTrendSection" class="trend-charts" style="display:none;">
+          <div class="chart-card">
+            <h3>覆蓋率趨勢 (%)</h3><canvas id="sCoverageChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>暖色比例趨勢 (%)</h3><canvas id="sWarmChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>冷色比例趨勢 (%)</h3><canvas id="sCoolChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>筆劃數量趨勢</h3><canvas id="sStrokeChart"></canvas>
+          </div>
+        </div>
+
+        <!-- 群組分析：彙總已儲存的 stats -->
+        <div id="groupAnalysis" class="group-analysis">
+          <!-- 這裡將動態插入群組分析內容 -->
+        </div>
+
+        <!-- 章節作品清單 -->
+        <div id="chapterList" class="chapter-list"></div>
+      </div>
+      <div id="galleryGrid" class="gallery-grid" aria-live="polite"></div>
+      <div id="emptyState" class="empty-state" hidden>
+        <h3>目前還沒有作品</h3>
+        <p>先到作畫空間畫一張，完成後按下「儲存到畫廊」，作品就會出現在這個地方。</p>
+        <a class="btn" href="Story.html">立刻開始作畫</a>
+      </div>
+    </section>
+  </main>
+  <section class="home-module reveal delay-3" aria-label="主頁作品布置">
+    <div class="module-head">
+      <h2>我的主頁布置</h2>
+      <button id="resetLayoutBtn" class="btn warn" type="button">重設位置</button>
+    </div>
+    <p class="module-tip">把作品卡片拖曳到下方布置區，位置會自動保存到這台裝置。</p>
+    <div id="layoutBoard" class="layout-board" aria-label="作品布置區"></div>
+    <h3 class="pool-title">作品清單</h3>
+    <div id="worksPool" class="works-pool" aria-label="可用作品清單"></div>
+  </section>
+  <script src="js/gallery.js"></script>
+</div>
+
+<script type="module">
+  import { StorageManager } from './js/storageManager.js';
+
+  const storageKey = "artEchoGallery";
+  const summaryTempKey = "artEchoSelectedGroupForSummary";
+  const emptyState = document.getElementById("emptyState");
+  const folderView = document.getElementById("folderView");
+  const folderGrid = document.getElementById("folderGrid");
+  const detailView = document.getElementById("detailView");
+  const clearAllBtn = document.getElementById("clearAllBtn");
+
+  // 新增編輯樣式
+  const style = document.createElement('style');
+  style.textContent = `
+    .edit-btn { background:none; border:none; cursor:pointer; margin-left:8px; font-size:0.95rem }
+    .editable-input { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:8px; font-size:1rem; }
+    .editable-textarea { width:100%; min-height:80px; padding:8px; border:1px solid var(--line); border-radius:8px; font-size:0.95rem; }
+    .edit-actions { display:flex; gap:8px; margin-top:8px; }
+    .edit-save { background:var(--moss); color:white; border:none; padding:6px 10px; border-radius:8px; cursor:pointer; }
+    .edit-cancel { background:#f3f3f3; border:1px solid var(--line); padding:6px 10px; border-radius:8px; cursor:pointer; }
+
+    /* 群組分析區 */
+    .group-analysis { display: grid; grid-template-columns: 1fr; gap:12px; margin-bottom:14px; }
+    .trend-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-bottom:12px; }
+    .group-summary { display: grid; grid-template-columns: repeat(2,1fr); gap:8px; }
+    .group-summary .stat { background:#fff; padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); display:flex; justify-content:space-between; font-size:0.95rem; }
+    .thumb-stats { display:grid; grid-template-columns: repeat(4,1fr); gap:8px; }
+    .thumb-card { background:#fff; padding:8px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); text-align:center; font-size:0.85rem; }
+    .thumb-card img { width:100%; height:64px; object-fit:cover; border-radius:6px; margin-bottom:6px; }
+    /* 改為垂直列表：圖片在左、文字在右 */
+    .thumb-stats { display:flex; flex-direction:column; gap:10px; }
+    .thumb-card { display:flex; gap:12px; align-items:flex-start; padding:10px; text-align:left; }
+    .thumb-card img { width:96px; height:96px; object-fit:cover; border-radius:8px; flex-shrink:0; }
+    .thumb-info { display:flex; flex-direction:column; gap:6px; }
+    .thumb-info .thumb-title { font-weight:700; color:var(--ink); }
+    .thumb-info .thumb-sub { font-size:0.85rem; color:#7a8886; }
+    .thumb-info .thumb-desc { font-size:0.88rem; color:#5a6b6a; }
+    .thumb-info .thumb-stats { font-size:0.82rem; color:#556; display:flex; gap:8px; flex-wrap:wrap; }
+  `;
+  document.head.appendChild(style);
+
+  // 故事中文名稱對照表
+  // 預留舊的對照表作為 fallback（將以共用 S<script type="module">tory.js 為主）
+  const storyNames = {
+    snow_white: "公主的等待",
+  };
+  const chapterTitles = {
+    "1": "第一章", "2": "第二章", "3": "第三章", "4": "第四章"
+  };
+
+  let chartInstances = [];
+
+  function getWorks() {
+    // 使用 StorageManager 保持一致
+    try {
+      return StorageManager.getAllWorks();
+    } catch (e) {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return [];
+      try { return JSON.parse(raw); } catch (e) { return []; }
+    }
+  }
+
+  // 為舊資料產生 groupKey（若不存在），並寫回 storage
+  function ensureGroupKeys(works) {
+    // 統計已存在的 group counts per base
+    const counts = {};
+    for (const w of works) {
+      if (w.groupKey) {
+        const baseMatch = w.groupKey.match(/^(.*?)\s*\((\d+)\)$/);
+        const base = baseMatch ? baseMatch[1].trim() : w.groupKey;
+        counts[base] = counts[base] || 0;
+        counts[w.groupKey] = counts[w.groupKey] || 0;
+        counts[base]++;
+      }
+    }
+
+    let changed = false;
+    // 處理沒有 groupKey 的作品，依 storyId 或 scenarioId 當 base
+    for (const w of works) {
+      if (!w.groupKey) {
+        const base = w.storyId || w.scenarioId || 'unknown';
+        counts[base] = counts[base] || 0;
+        // 找可用 groupKey
+        let groupKey = base;
+        if (counts[base] >= 4) {
+          let idx = 1;
+          while ((counts[`${base} (${idx})`] || 0) >= 4) idx++;
+          groupKey = `${base} (${idx})`;
+        }
+        // 註冊並增加計數
+        counts[groupKey] = (counts[groupKey] || 0) + 1;
+        counts[base] = counts[base] + 1;
+        w.groupKey = groupKey;
+        // 寫回
+        try {
+          StorageManager.updateWork(w.id, { groupKey: groupKey });
+        } catch (e) {
+          // fallback: 全部一次寫回
+          changed = true;
+        }
+      }
+    }
+
+    if (changed) {
+      // fallback: 若未能逐筆更新，整批覆寫
+      localStorage.setItem(storageKey, JSON.stringify(works));
+    }
+    return works;
+  }
+
+  /** 按故事分組 */
+  function groupByStory(works) {
+    const groups = {};
+    for (const w of works) {
+      // 使用 groupKey（save 時會自動產生），否則退回到 storyId
+      const gid = w.groupKey || w.storyId || w.scenarioId || "unknown";
+      if (!groups[gid]) groups[gid] = [];
+      groups[gid].push(w);
+    }
+    return groups;
+  }
+
+  /** 為舊資料補名稱 */
+  function fallbackName(work, idx) {
+    if (work.name && work.name.trim()) return work.name;
+    const warmWords = ['柔和的', '微光中的', '沉靜的'];
+    const themeWords = ['夢境', '餘韻', '心情'];
+    const pick = (arr) => arr[idx % arr.length];
+    return `${pick(warmWords)}${pick(themeWords)}`;
+  }
+
+  /** 為舊資料補形狀 */
+  function fallbackShapes(work) {
+    if (work.shapes && work.shapes.length > 0) return work.shapes;
+    return [{ type: 'freeform', label: '🌊 自由風格' }];
+  }
+  /* ============ 資料夾主路面 ============ */
+  /* ============ 資料夾主路面 ============ */
+  function renderFolders() {
+    let works = getWorks();
+    folderGrid.innerHTML = "";
+    detailView.classList.remove("active");
+    folderView.style.display = "block";
+
+    if (works.length === 0) {
+      emptyState.hidden = false;
+      folderView.style.display = "none";
+      return;
+    }
+    emptyState.hidden = true;
+
+    // 1. 分組邏輯：每組最多 4 張
+    const groups = {};
+    works.forEach(w => {
+      const sid = w.storyId || w.scenarioId || "unknown";
+      let groupIdx = 1;
+      while (groups[`${sid}_${groupIdx}`] && groups[`${sid}_${groupIdx}`].length >= 4) {
+        groupIdx++;
+      }
+      const groupKey = `${sid}_${groupIdx}`;
+      if (!groups[groupKey]) groups[groupKey] = [];
+      groups[groupKey].push(w);
+    });
+
+    Object.keys(groups).forEach(groupKey => {
+      const groupWorks = groups[groupKey];
+      const lastUnderscoreIndex = groupKey.lastIndexOf('_');
+      const storyId = groupKey.slice(0, lastUnderscoreIndex);
+      const groupNum = parseInt(groupKey.slice(lastUnderscoreIndex + 1), 10);
+
+      const card = document.createElement("div");
+      card.className = "folder-card";
+
+      const coverDiv = document.createElement("div");
+      coverDiv.className = "folder-cover";
+      const grid = document.createElement("div");
+      grid.className = "folder-cover-grid";
+
+      groupWorks.forEach(t => {
+        const img = document.createElement("img");
+        img.src = t.dataUrl;
+        grid.appendChild(img);
+      });
+      coverDiv.appendChild(grid);
+
+      const info = document.createElement("div");
+      info.className = "folder-info";
+      const h3 = document.createElement("h3");
+
+      // --- 取得中文標題 ---
+      let displayTitle = groupWorks[0]?.storyTitle || "未知主題";
+      try {
+        if (!groupWorks[0]?.storyTitle) {
+          if (window.getScenarioById) {
+            const sc = window.getScenarioById(storyId);
+            displayTitle = (sc && sc.title) ? sc.title : storyId;
+          } else {
+            const storyNames = { snow_white: "公主的等待", snow: "公主的等待" };
+            displayTitle = storyNames[storyId] || storyId;
+          }
+        }
+      } catch (e) {
+        displayTitle = storyId;
+      }
+
+      // --- 🌟 關鍵修正：處理 (1), (2) 顯示邏輯 ---
+      if (groupNum > 1) {
+        // 第 2 組顯示 (1)，第 3 組顯示 (2)...
+        h3.textContent = `${displayTitle}(${groupNum - 1})`;
+      } else {
+        // 第 1 組不顯示數字
+        h3.textContent = displayTitle;
+      }
+
+      const p = document.createElement("p");
+      p.textContent = `已完成 ${groupWorks.length} / 4 個章節`;
+
+      info.appendChild(h3);
+      info.appendChild(p);
+      card.appendChild(coverDiv);
+      card.appendChild(info);
+
+      card.onclick = () => openStoryDetail(h3.textContent, groupWorks);
+      folderGrid.appendChild(card);
+    });
+  }
+
+  /* ============ 故事詳細頁 ============ */
+  function openStoryDetail(groupKey, storyWorks) {
+    folderView.style.display = "none";
+    detailView.classList.add("active");
+
+    // 1. 設定 Header 標題
+    let base = groupKey;
+    const m = groupKey.match(/^(.+?)\s*\(\d+\)$/);
+    if (m) base = m[1];
+
+    let headerTitle = base;
+    try { if (window.getScenarioById) { const sc = window.getScenarioById(base); if (sc && sc.title) headerTitle = sc.title; } } catch (e) {}
+    if (!headerTitle || headerTitle === '') headerTitle = storyNames[base] || base;
+
+    document.getElementById("detailTitle").textContent = headerTitle;
+    const levels = [...new Set(storyWorks.map(w => w.level))];
+    document.getElementById("detailSubtitle").textContent =
+            `共 ${storyWorks.length} 幅作品 · 已探索 ${levels.length}/4 章節`;
+    const fullReportBtn = document.getElementById("openFullReportBtn");
+    if (fullReportBtn) {
+      fullReportBtn.onclick = () => {
+        localStorage.setItem(summaryTempKey, JSON.stringify(storyWorks));
+        location.href = "AnalysisSummary.html";
+      };
+    }
+
+    // 2. 清理並顯示趨勢圖表區
+    const trendSection = document.getElementById('storyTrendSection');
+    if (trendSection) {
+      trendSection.style.display = 'grid';
+    }
+    destroyCharts();
+    renderStoryCharts(storyWorks);
+
+    // 3. 渲染章節列表 (改回左圖右文，且放大圖片)
+    const list = document.getElementById("chapterList");
+    list.innerHTML = "";
+
+    // 依章節排序
+    const sorted = storyWorks.slice().sort((a, b) => {
+      if (a.level !== b.level) return a.level - b.level;
+      return (a.id || 0) - (b.id || 0);
+    });
+
+    sorted.forEach((work, idx) => {
+      const card = document.createElement("div");
+      card.className = "chapter-card";
+      // 強制使用 flex 橫向排列
+      card.style.display = "flex";
+      card.style.flexDirection = "row";
+      card.style.alignItems = "stretch";
+
+      // --- 左側：放大圖片區 ---
+      const img = document.createElement("img");
+      img.src = work.dataUrl;
+      img.alt = work.name || "作品圖";
+      // 設定圖片寬度與高度，保持大尺寸
+      img.style.width = "300px";
+      img.style.height = "auto";
+      img.style.objectFit = "cover";
+      img.style.flexShrink = "0";
+
+      // --- 右側：文字內容區 ---
+      const body = document.createElement("div");
+      body.className = "chapter-body";
+      body.style.flex = "1";
+      body.style.padding = "20px";
+
+      // A. 作品標題 (含編輯功能)
+      const titleRow = document.createElement('div');
+      titleRow.style.display = 'flex';
+      titleRow.style.alignItems = 'center';
+      titleRow.style.gap = '8px';
+      titleRow.style.marginBottom = '4px';
+
+      const chTitle = document.createElement("h3");
+      chTitle.textContent = work.name && work.name.trim() ? work.name : fallbackName(work, idx);
+      chTitle.style.margin = "0";
+      titleRow.appendChild(chTitle);
+
+      const editTitleBtn = document.createElement('button');
+      editTitleBtn.className = 'edit-btn';
+      editTitleBtn.innerText = '✏️';
+      editTitleBtn.onclick = () => {
+        const input = document.createElement('input');
+        input.className = 'editable-input';
+        input.value = chTitle.textContent;
+        titleRow.replaceChild(input, chTitle);
+        input.focus();
+        input.onblur = () => {
+          const newVal = input.value.trim() || fallbackName(work, idx);
+          chTitle.textContent = newVal;
+          titleRow.replaceChild(chTitle, input);
+          StorageManager.updateWork(work.id, { name: newVal });
+        };
+      };
+      titleRow.appendChild(editTitleBtn);
+      body.appendChild(titleRow);
+
+      // B. 章節與時間
+      const chSub = document.createElement("p");
+      chSub.className = "chapter-subtitle";
+      let timeStr = "";
+      const time = new Date(work.id || work.createdAt);
+      if (!isNaN(time.getTime())) timeStr = ` · ${time.toLocaleString("zh-Hant-TW", { hour12: false })}`;
+      chSub.textContent = `${chapterTitles[work.level] || '第' + work.level + '章'}${timeStr}`;
+      body.appendChild(chSub);
+
+      // C. 標籤
+      const tagsEl = document.createElement("div");
+      tagsEl.className = "shape-tags";
+      tagsEl.style.margin = "10px 0";
+      fallbackShapes(work).forEach(s => {
+        const b = document.createElement("span");
+        b.className = "shape-badge";
+        b.textContent = s.label;
+        tagsEl.appendChild(b);
+      });
+      body.appendChild(tagsEl);
+
+      // D. 情緒描述 (解釋區，含編輯功能)
+      const descWrapper = document.createElement('div');
+      descWrapper.style.position = 'relative';
+      const descEl = document.createElement("p");
+      descEl.className = "chapter-description";
+      descEl.textContent = work.description && work.description.trim() ? work.description : "點擊右側鉛筆新增關於這幅畫的情緒描述...";
+      descWrapper.appendChild(descEl);
+
+      const editDescBtn = document.createElement('button');
+      editDescBtn.className = 'edit-btn';
+      editDescBtn.innerText = '✏️';
+      editDescBtn.style.position = 'absolute';
+      editDescBtn.style.top = '0';
+      editDescBtn.style.right = '0';
+      editDescBtn.onclick = () => {
+        const ta = document.createElement('textarea');
+        ta.className = 'editable-textarea';
+        ta.value = work.description || '';
+        descWrapper.replaceChild(ta, descEl);
+        const actions = document.createElement('div'); actions.className = 'edit-actions';
+        const saveBtn = document.createElement('button'); saveBtn.className = 'edit-save'; saveBtn.textContent = '儲存';
+        actions.appendChild(saveBtn);
+        descWrapper.appendChild(actions);
+
+        saveBtn.onclick = () => {
+          const newDesc = ta.value.trim();
+          descEl.textContent = newDesc || "點擊右側鉛筆新增...";
+          descWrapper.removeChild(actions);
+          descWrapper.replaceChild(descEl, ta);
+          StorageManager.updateWork(work.id, { description: newDesc });
+        };
+      };
+      descWrapper.appendChild(editDescBtn);
+      body.appendChild(descWrapper);
+
+      // E. 下載按鈕
+      const dl = document.createElement("a");
+      dl.className = "btn chapter-download";
+      dl.style.marginTop = "15px";
+      dl.style.width = "fit-content";
+      dl.href = work.dataUrl;
+      dl.download = `artecho-${work.id}.png`;
+      dl.textContent = "下載作品";
+      body.appendChild(dl);
+
+      card.appendChild(img);
+      card.appendChild(body);
+      list.appendChild(card);
+    });
+  }
+
+  /* ============ 故事內頁趨勢圖 ============ */
+  function renderStoryCharts(works) {
+    const section = document.getElementById("storyTrendSection");
+    if (works.length < 1) {
+      section.style.display = "none";
+      return;
+    }
+    section.style.display = "grid";
+
+    const sorted = works.slice().sort((a, b) => (a.level || 0) - (b.level || 0));
+    const labels = sorted.map((w, i) => w.name && w.name.trim() ? (w.name) : (chapterTitles[w.level] || `第${w.level}章 ${i+1}`));
+    const cov = sorted.map(w => w.stats ? parseFloat(w.stats.coverage) : 0);
+    const warm = sorted.map(w => w.stats ? parseFloat(w.stats.warmRatio) : 0);
+    const cool = sorted.map(w => w.stats ? parseFloat(w.stats.coolRatio) : 0);
+    const strk = sorted.map(w => w.stats ? parseInt(w.stats.strokeCount) : 0);
+
+    const optLine = {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } },
+      elements: { line: { tension: 0.35 }, point: { radius: 5, hoverRadius: 7 } }
+    };
+    const optBar = Object.assign({}, optLine, { elements: { line: { tension: 0.2 } } });
+
+    chartInstances.push(new Chart(document.getElementById('sCoverageChart'), {
+      type: 'line', data: { labels, datasets: [{ data: cov, borderColor: '#2f5d4f', backgroundColor: 'rgba(47,93,79,0.08)', fill: true, borderWidth: 2 }] }, options: optLine
+    }));
+    chartInstances.push(new Chart(document.getElementById('sWarmChart'), {
+      type: 'bar', data: { labels, datasets: [{ data: warm, backgroundColor: 'rgba(198,107,61,0.6)', borderColor: '#c66b3d', borderWidth: 1, borderRadius: 6 }] }, options: optBar
+    }));
+    chartInstances.push(new Chart(document.getElementById('sCoolChart'), {
+      type: 'bar', data: { labels, datasets: [{ data: cool, backgroundColor: 'rgba(96,134,220,0.6)', borderColor: '#6086dc', borderWidth: 1, borderRadius: 6 }] }, options: optBar
+    }));
+    chartInstances.push(new Chart(document.getElementById('sStrokeChart'), {
+      type: 'line', data: { labels, datasets: [{ data: strk, borderColor: '#dcc9a7', backgroundColor: 'rgba(220,201,167,0.12)', fill: true, borderWidth: 2, borderDash: [5, 3] }] }, options: optLine
+    }));
+  }
+
+  function destroyCharts() {
+    chartInstances.forEach(c => c.destroy());
+    chartInstances = [];
+  }
+  /* ============ 事件綁定 ============ */
+  document.getElementById("backBtn").onclick = () => {
+    destroyCharts();
+    renderFolders();
+  };
+
+  clearAllBtn.addEventListener("click", () => {
+    if (!confirm("確定要清空所有畫廊作品嗎？此操作無法復原。")) return;
+    localStorage.removeItem(storageKey);
+    destroyCharts();
+    renderFolders();
+  });
+
+  renderFolders();
+  document.addEventListener("DOMContentLoaded", function() {
+    // 啟動主頁佈置功能
+    if (typeof HomeLayoutManager !== "undefined") {
+      HomeLayoutManager.init({
+        worksPool: document.getElementById("worksPool"),
+        layoutBoard: document.getElementById("layoutBoard"),
+        resetBtn: document.getElementById("resetLayoutBtn")
+      });
+    }
+  });
+  function initPage() {
+    renderFolders();
+    // 如果未來有新增作品，也可以調用 HomeLayoutManager.loadData() 來同步
+  }
+
+  initPage();
+</script>
+</body>
+</html>

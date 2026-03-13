@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArtEcho | 深度故事創作總結</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="CSS/styles.css">
+    <style>
+        .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; font-weight: 700; }
+        .brand-dot { width: 12px; height: 12px; background-color: #dcc9a7; border-radius: 50%; display: inline-block; }
+        .summary-header { text-align: center; padding: 40px 0; background: var(--moss); color: white; border-radius: 24px; margin-bottom: 30px; }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .chart-card {
+            background: white;
+            padding: 24px;
+            border-radius: 20px;
+            border: 1px solid var(--line);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .chart-card h3 {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            color: var(--moss);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .mini-gallery {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+            overflow-x: auto;
+            padding-bottom: 15px;
+        }
+        .mini-item { flex: 0 0 140px; text-align: center; font-size: 0.85rem; }
+        .mini-item img {
+            width: 100%;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            margin-bottom: 8px;
+            transition: transform 0.2s;
+        }
+        .mini-item img:hover { transform: scale(1.05); }
+
+        .insight-box {
+            background: #fffdfa;
+            border-left: 4px solid var(--terracotta);
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 0 12px 12px 0;
+            font-style: italic;
+            color: #5a6b6a;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 24px;
+            border-radius: 20px;
+            border: 1px solid var(--line);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            height: 350px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 確保 Canvas 填滿容器但不超出 */
+        .chart-card canvas {
+            max-width: 100% !important;
+            max-height: 280px !important; /* 留出空間給標題 */
+        }
+    </style>
+</head>
+<body>
+<div class="page-shell">
+    <header class="site-header">
+        <nav class="nav-wrap">
+            <a class="brand" href="index.html"><span class="brand-dot"></span>ArtEcho</a>
+            <div class="nav-links">
+                <a class="nav-btn" href="index.html">主頁</a>
+                <a class="nav-btn" href="Gallery.html">個人畫廊</a>
+                <a class="nav-btn active" href="Story.html">劇情繪畫</a>
+                <a class="nav-btn" href="Cloud_space.html">雲端畫廊</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="panel">
+        <div class="summary-header">
+            <h1>🎨 創作全維度報告</h1>
+            <p>透過數據洞察你的內在情緒與運筆節奏</p>
+        </div>
+
+        <div class="insight-box">
+            「每一筆觸都是潛意識的延伸。當壓力增加時，可能代表著情感的張力；當猶豫率升高，則是心靈在對話中的停留。」
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart-card"><h3>🕒 創作投入時長 (秒)</h3><canvas id="timeChart"></canvas></div>
+            <div class="chart-card"><h3>🖌️ 填滿與色彩平衡 (%)</h3><canvas id="colorChart"></canvas></div>
+            <div class="chart-card"><h3>⚖️ 空間重心分佈 (左側%)</h3><canvas id="weightChart"></canvas></div>
+            <div class="chart-card"><h3>📉 運筆猶豫率 (%)</h3><canvas id="hesitationChart"></canvas></div>
+            <div class="chart-card"><h3>💪 下筆平均壓力</h3><canvas id="pressureChart"></canvas></div>
+            <div class="chart-card"><h3>✒️ 筆劃路徑總數</h3><canvas id="strokeChart"></canvas></div>
+        </div>
+
+        <h2 style="text-align:center; font-family:'Noto Serif TC'; color:var(--moss);">🖼️ 四章節回顧</h2>
+        <div class="mini-gallery" id="miniGallery"></div>
+
+        <div style="text-align: center; margin-top: 50px; padding-bottom: 50px;">
+            <button class="cta-btn primary" onclick="location.href='Gallery.html'">前往個人畫廊</button>
+            <button class="btn" style="margin-left:10px;" onclick="location.href='index.html'">回到主頁</button>
+        </div>
+    </main>
+</div>
+
+<script>
+    window.onload = () => {
+        const summaryTempKey = "artEchoSelectedGroupForSummary";
+        const selectedWorks = JSON.parse(localStorage.getItem(summaryTempKey) || "null");
+        const works = Array.isArray(selectedWorks) && selectedWorks.length > 0
+            ? selectedWorks
+            : JSON.parse(localStorage.getItem("artEchoGallery") || "[]");
+
+        const levelData = {};
+        works.forEach(w => {
+            levelData[w.level] = w;
+        });
+
+        const levels = ["1", "2", "3", "4"];
+        const labels = ["第一章", "第二章", "第三章", "第四章"];
+        const getStat = (l, key) => (levelData[l] && levelData[l].stats) ? parseFloat(levelData[l].stats[key]) : 0;
+        const getDuration = (l) => levelData[l] ? parseInt(levelData[l].duration) : 0;
+
+        const timeData = levels.map(l => getDuration(l));
+        const coverageData = levels.map(l => getStat(l, 'coverage'));
+        const warmData = levels.map(l => getStat(l, 'warmRatio'));
+        const weightData = levels.map(l => getStat(l, 'leftWeight'));
+        const hesitationData = levels.map(l => getStat(l, 'hesitationRatio'));
+        const pressureData = levels.map(l => getStat(l, 'avgPressure'));
+        const strokeData = levels.map(l => getStat(l, 'strokeCount'));
+
+        // 渲染縮圖
+        const gallery = document.getElementById("miniGallery");
+        levels.forEach(l => {
+            if(levelData[l]) {
+                gallery.innerHTML += `
+                    <div class="mini-item">
+                        <img src="${levelData[l].dataUrl}">
+                        <p><strong>${levelData[l].name || '未命名'}</strong></p>
+                        <span>第 ${l} 章</span>
+                    </div>`;
+            }
+        });
+
+        // 通用圖表設定
+        const opt = (yMax = null) => ({
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: yMax,
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                x: { grid: { display: false } }
+            }
+        });
+
+        // 1. 作畫時長 (折線圖)
+        new Chart(document.getElementById('timeChart'), {
+            type: 'line',
+            data: { labels, datasets: [{ data: timeData, borderColor: '#2f5d4f', tension: 0.3, fill: true, backgroundColor: 'rgba(47, 73, 79, 0.1)' }] },
+            options: opt()
+        });
+
+        // 2. 填滿與色彩 (堆疊柱狀圖)
+        new Chart(document.getElementById('colorChart'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    { label: '填滿率', data: coverageData, backgroundColor: '#dcc9a7' },
+                    { label: '暖色比', data: warmData, backgroundColor: '#c66b3d' }
+                ]
+            },
+            options: opt(100)
+        });
+
+        // 3. 空間重心 (雷達圖風格的長條圖)
+        new Chart(document.getElementById('weightChart'), {
+            type: 'bar',
+            data: { labels, datasets: [{ data: weightData, backgroundColor: '#7a8886', borderRadius: 20 }] },
+            options: opt(100)
+        });
+
+        // 4. 猶豫率 (波浪線)
+        new Chart(document.getElementById('hesitationChart'), {
+            type: 'line',
+            data: { labels, datasets: [{ data: hesitationData, borderColor: '#d16e51', borderDash: [5, 5], tension: 0.4 }] },
+            options: opt(100)
+        });
+
+        // 5. 平均壓力 (階梯圖)
+        new Chart(document.getElementById('pressureChart'), {
+            type: 'line',
+            data: { labels, datasets: [{ data: pressureData, borderColor: '#2f5d4f', stepped: true, borderWidth: 3 }] },
+            options: opt(1.5)
+        });
+
+        // 6. 筆劃總數 (柱狀圖)
+        new Chart(document.getElementById('strokeChart'), {
+            type: 'bar',
+            data: { labels, datasets: [{ data: strokeData, backgroundColor: '#dcc9a7' }] },
+            options: opt()
+        });
+    };
+</script>
+</body>
+</html>

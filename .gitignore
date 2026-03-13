@@ -1,0 +1,62 @@
+# ==============================================================================
+# ArtEcho 優化版 .gitignore
+# ==============================================================================
+
+# 依賴套件 (Dependencies)
+# ------------------------------------------------------------------------------
+node_modules/
+jspm_packages/
+typings/
+
+# 環境變數與機密資訊 (Environment Variables / Secrets)
+# ------------------------------------------------------------------------------
+# 絕對不要上傳 .env 檔案，裡面包含你的 SMTP 密碼 [cite: 1]
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# 日誌檔案 (Logs)
+# ------------------------------------------------------------------------------
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# 編輯器與 IDE 設定 (Editor / IDE Settings)
+# ------------------------------------------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# 作業系統垃圾檔案 (OS Metadata)
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# 部署與建置輸出 (Build / Deployment)
+# ------------------------------------------------------------------------------
+.vercel
+dist/
+build/
+out/
+.next/
+.serverless/
+
+# 測試與覆蓋率 (Testing)
+# ------------------------------------------------------------------------------
+coverage/
+*.lcov

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>ArtEcho | 主頁</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="CSS/compa.css">
+</head>
+<body>
+	<div class="page-shell">
+		<header class="site-header reveal">
+			<nav class="nav-wrap" aria-label="主要導覽">
+				<a class="brand" href="index.html"><span class="brand-dot" aria-hidden="true"></span>ArtEcho</a>
+				<div class="nav-links">
+					<a class="nav-btn active" href="index.html">主頁</a>
+					<a class="nav-btn" href="Gallery.html">個人雲端藝術庫</a>
+					<a class="nav-btn" href="Story.html">劇情繪畫</a>
+                    <a class="nav-btn " href="Cloud_space.html">公開藝術畫廊</a>
+					<a class="nav-btn" href="login.html">登入</a>
+				</div>
+			</nav>
+		</header>
+
+		<main>
+			<section class="hero reveal delay-1">
+				<h1>用色彩回應情緒，讓畫面成為你心情日記</h1>
+				<p>
+					ArtEcho 是一個藝術治療感的陪伴空間。你可以在作畫空間自由塗抹、呼吸、停頓，
+					把今天的情緒存成作品，慢慢累積成一座只屬於你的畫廊。
+				</p>
+
+			</section>
+
+			<section class="section-grid reveal delay-2">
+				<article class="info-card">
+					<h3>1. 開始作畫</h3>
+					<p>先選一個貼近當下心情的顏色，讓手先動起來，無需擔心畫得像不像。</p>
+				</article>
+				<article class="info-card">
+					<h3>2. 命名情緒</h3>
+					<p>畫完後觀察畫面，為它取一個名字，幫助你辨識並接住內在感受。</p>
+				</article>
+				<article class="info-card">
+					<h3>3. 累積軌跡</h3>
+					<p>儲存到個人畫廊，回看每一張作品，感受自己的節奏與轉變。</p>
+				</article>
+			</section>
+
+			<section class="home-module reveal delay-3" aria-label="關心訊息">
+				<div class="module-head">
+					<h2>今天的溫柔提醒</h2>
+					<button id="tickerToggleBtn" class="btn" type="button" aria-pressed="false">暫停提醒</button>
+				</div>
+				<div class="care-ticker" role="status" aria-live="polite" aria-atomic="true">
+					<p id="careTickerText">今天畫畫了嗎？</p>
+				</div>
+			</section>
+
+			<section class="home-module reveal delay-3" aria-label="官方健康資訊與資源">
+				<h2>官方健康資訊與資源</h2>
+
+				<div class="cta-row">
+					<button class="cta-btn primary" onclick="toggleResource('gov')">衛福部免費資源</button>
+				</div>
+
+				<div class="carousel">
+					<div class="carousel-images">
+						<figure class="figure-with-row">
+							<div class="content-wrapper"> <a href="https://sps.mohw.gov.tw/mhs" target="_blank" rel="noopener noreferrer">
+								<img src="images/young_health.png" alt="青壯世代心理健康方案">
+							</a>
+
+								<div class="info-box">
+									<h4>方案簡介</h4>
+									<p>本方案提供 15歲至 45歲民眾心理諮商補助，旨在減輕青壯世代壓力，鼓勵積極尋求專業協助。</p>
+									<ul class="info-list">
+										<li><strong>服務項目：</strong>每人 3 次免費諮商</li>
+										<li><strong>適用對象：</strong>15-45 歲青壯年</li>
+										<li><strong>使用方式：</strong>點擊海報進入官網預約機構</li>
+										<a href="images/115METHOD.pdf" target="_blank" rel="noopener noreferrer">115年青壯年心理健康支持方案.pdf</a>
+									</ul>
+								</div>
+							</div>
+
+							<div class="row-container">
+								<figcaption>青壯世代心理健康方案</figcaption>
+							</div>
+						</figure>
+
+						<figure>
+							<div class="content-wrapper"> <a href="https://dep.mohw.gov.tw/DOMHAOH/cp-502-83799-107.html" target="_blank" rel="noopener noreferrer">
+								<img src="images/man.png" alt="男性關懷專線">
+							</a>
+
+								<div class="info-box">
+									<h4>方案簡介</h4>
+									<p>男性朋友只要有心理困擾，不論是職場人際、霸凌、憂鬱、感情、就醫等問題或是面對家庭暴力等議題，都可以撥打此專線，將困擾訴說給專線接線人員，讓每個有需要幫助的男性朋友都能獲得協助，及在最脆弱的時刻提供陪伴、傾聽及支持。</p>
+									<ul class="info-list">
+										<li><strong>服務項目：</strong>電話諮詢、關懷服務、資源提供或轉介</li>
+										<li><strong>適用對象：</strong>全國男性</li>
+										<li><strong>使用方式：</strong>撥打0800-013-999<br>(服務時間7：00am.-23：00pm.)</li>
+									</ul>
+								</div>
+							</div>
+
+							<div class="row-container">
+								<figcaption>男性關懷專線</figcaption>
+							</div>
+						</figure>
+					</div>
+
+					<div class="carousel-dots">
+						<span class="dot active" data-index="0"></span>
+						<span class="dot" data-index="1"></span>
+					</div>
+				</div>
+
+
+			</section>
+		</main>
+	</div>
+	<script src="js/index.js"></script>
+</body>
+</html>

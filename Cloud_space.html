@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArtEcho | 雲端畫廊</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="CSS/styles.css">
+    <link rel="stylesheet" href="CSS/cloud.css">
+</head>
+<body>
+<div class="page-shell">
+    <header class="site-header">
+        <nav class="nav-wrap">
+            <a class="brand" href="index.html"><span class="brand-dot"></span>ArtEcho</a>
+            <div class="nav-links">
+                <a class="nav-btn" href="index.html">主頁</a>
+                <a class="nav-btn" href="Gallery.html">個人雲端藝術庫</a>
+                <a class="nav-btn" href="Story.html">劇情繪畫</a>
+                <a class="nav-btn active" href="Cloud_space.html">公開藝術畫廊</a>
+                <a class="nav-btn" href="login.html">登入</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="panel reveal delay-1">
+            <h1 class="page-title">雲端畫廊</h1>
+            <p class="page-subtitle">探索來自世界各地的創作靈感。這裡匯集了所有旅人的情緒瞬間。</p>
+
+            <!-- 新增：標籤欄 -->
+            <div id="cloudTags" class="tag-bar" aria-label="篩選標籤"></div>
+
+            <div id="cloudGrid" class="cloud-grid" aria-live="polite"></div>
+        </section>
+    </main>
+</div>
+
+<script type="module" src="js/cloud.js"></script>
+</body>
+</html>

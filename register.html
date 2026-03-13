@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArtEcho | 註冊帳號</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="CSS/compa.css">
+  <style>
+    /* 沿用首頁 / 登入的視覺 */
+    .auth-wrap { display:flex; align-items:center; justify-content:center; min-height:60vh; }
+    .auth-panel { width: min(560px,96%); border:1px solid var(--line); border-radius:18px; padding:28px; background:rgba(255,250,243,0.95); box-shadow:0 18px 30px -22px var(--shadow); }
+    .auth-form label { display:block; font-size:0.95rem; margin-bottom:8px; }
+    .auth-form input[type="text"], .auth-form input[type="email"], .auth-form input[type="password"], .auth-form input[type="tel"] { width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:#fffdf8; font-size:0.95rem; outline:none; }
+    .auth-form input:focus { box-shadow:0 6px 18px -12px var(--shadow); border-color:#b69e71; }
+    .form-row { margin-bottom:14px; }
+    .form-actions { display:flex; gap:10px; align-items:center; justify-content:space-between; margin-top:12px; }
+    .btn.primary { background:var(--moss); color:#fffaf1; border-color:transparent; }
+    .small-link { font-size:0.92rem; color:#4f595f; text-decoration:none; }
+    #form-msg { display:block; margin-top:8px; color:#4f595f; font-size:0.92rem; }
+    .pw-note { font-size:0.85rem; color:#6b6b6b; margin-top:6px; }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header reveal">
+      <nav class="nav-wrap" aria-label="主要導覽">
+        <a class="brand" href="index.html"><span class="brand-dot" aria-hidden="true"></span>ArtEcho</a>
+        <div class="nav-links">
+          <a class="nav-btn" href="index.html">主頁</a>
+          <a class="nav-btn" href="Gallery.html">個人雲端藝術庫</a>
+          <a class="nav-btn" href="Story.html">劇情繪畫</a>
+          <a class="nav-btn" href="Cloud_space.html">公開藝術畫廊</a>
+          <a class="nav-btn" href="login.html">登入</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero reveal delay-1">
+        <h1 class="page-title">建立你的 ArtEcho 帳號</h1>
+        <p class="page-subtitle">註冊後可以儲存作品、使用私密畫廊，並與 AI 互動記錄情緒歷程。</p>
+      </section>
+
+      <div class="auth-wrap">
+        <div class="auth-panel">
+          <form id="registerForm" class="auth-form" action="#" method="post" aria-label="註冊表單">
+            <div class="form-row">
+              <label for="email">電子郵件（作為帳號）</label>
+              <input id="email" name="email" type="email" placeholder="請輸入可收到驗證信的電子郵件" required>
+            </div>
+
+            <div class="form-row">
+              <label for="displayName">顯示名稱</label>
+              <input id="displayName" name="displayName" type="text" placeholder="在畫廊中顯示的名稱（可選）">
+            </div>
+
+            <div class="form-row">
+              <label for="password">密碼</label>
+              <input id="password" name="password" type="password" placeholder="至少 8 個字元，包含英數" required>
+              <div class="pw-note">建議使用 8 字元以上，包含英文與數字以提高安全性。</div>
+            </div>
+
+            <div class="form-row">
+              <label for="confirmPassword">再次輸入密碼</label>
+              <input id="confirmPassword" name="confirmPassword" type="password" placeholder="再次輸入密碼以確認" required>
+            </div>
+
+            <div class="form-row">
+              <label for="phone">行動電話（選填）</label>
+              <input id="phone" name="phone" type="tel" placeholder="選填：用於接收驗證碼或通知">
+            </div>
+
+            <span id="form-msg" aria-live="polite"></span>
+
+            <div class="form-actions">
+              <div style="display:flex; gap:8px; align-items:center;">
+                <button id="registerBtn" type="button" class="btn primary">註冊</button>
+                <button id="clearBtn" type="button" class="btn">清除</button>
+              </div>
+              <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+                <a class="small-link" href="login.html">已有帳號，返回登入</a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const registerBtn = document.getElementById('registerBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const emailInput = document.getElementById('email');
+    const displayInput = document.getElementById('displayName');
+    const pwInput = document.getElementById('password');
+    const confirmInput = document.getElementById('confirmPassword');
+    const phoneInput = document.getElementById('phone');
+    const formMsg = document.getElementById('form-msg');
+
+    function validateEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function validatePassword(pw) {
+      if (!pw || pw.length < 8) return false;
+      // 至少包含一個數字與一個英文字母
+      return /[0-9]/.test(pw) && /[A-Za-z]/.test(pw);
+    }
+
+    registerBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      formMsg.textContent = '';
+      const email = emailInput.value.trim();
+      const display = displayInput.value.trim();
+      const pw = pwInput.value;
+      const confirmPw = confirmInput.value;
+      const phone = phoneInput.value.trim();
+
+      if (!validateEmail(email)) { formMsg.textContent = '請輸入有效的電子郵件地址。'; emailInput.focus(); return; }
+      if (!validatePassword(pw)) { formMsg.textContent = '密碼需至少 8 碼，包含英文與數字。'; pwInput.focus(); return; }
+      if (pw !== confirmPw) { formMsg.textContent = '兩次密碼輸入不一致。'; confirmInput.focus(); return; }
+      if (phone && !/^\+?[0-9\-\s]{6,20}$/.test(phone)) { formMsg.textContent = '請輸入有效的電話號碼格式或留空。'; phoneInput.focus(); return; }
+
+      registerBtn.disabled = true; registerBtn.textContent = '註冊中...';
+
+      try {
+        const resp = await fetch('/api/register', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, display, password: pw, phone })
+        });
+
+        if (resp.ok) {
+          formMsg.textContent = '註冊成功，請至信箱完成驗證（若有）。';
+          setTimeout(() => { window.location.href = 'login.html'; }, 900);
+        } else {
+          const data = await resp.json().catch(() => ({}));
+          formMsg.textContent = data.message || '註冊失敗：伺服器回傳錯誤。';
+          registerBtn.disabled = false; registerBtn.textContent = '註冊';
+        }
+      } catch (err) {
+        // 開發環境友好：模擬成功
+        formMsg.textContent = '已模擬註冊成功（開發模式），將導向登入頁。';
+        setTimeout(() => { window.location.href = 'login.html'; }, 900);
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      emailInput.value = ''; displayInput.value = ''; pwInput.value = ''; confirmInput.value = ''; phoneInput.value = ''; formMsg.textContent = '';
+      emailInput.focus();
+    });
+  </script>
+</body>
+</html>
