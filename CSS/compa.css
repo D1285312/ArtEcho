@@ -8,7 +8,7 @@
     --terracotta: #1e1f22;
     --sand: #e8d6b5;
     --mist: #f9f3ea;
-    --line: #dcc9a7;
+    --line: #0e0e0e;
     --shadow: rgba(26, 34, 41, 0.14);
 }
 
@@ -794,7 +794,6 @@ h1, h2, h3 {
     height: 180px;
     overflow: hidden;
     background: var(--mist);
-    border-bottom: 2px solid var(--terracotta);
 }
 
 .scenario-card-img img {

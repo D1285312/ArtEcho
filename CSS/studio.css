@@ -17,7 +17,6 @@
     width: 40%;
     height: 220px;
     object-fit: cover;
-    border-right: 4px solid var(--terracotta);
 }
 
 .scenario-text {
@@ -60,21 +59,50 @@
 }
 
 .color-input-wrapper {
-    border: 1.5px solid var(--moss);
-    border-radius: 8px;
-    padding: 4px;
+    border: none; /* 移除外框 */
     display: flex;
-    background: white;
-    margin-bottom: 15px;
-}
-
-#colorPicker {
-    width: 100%;
-    height: 35px;
-    cursor: pointer;
-    border: none;
+    justify-content: center;
+    align-items: center;
     background: none;
 }
+/* 1. 針對 Chrome, Edge, Safari 的強力修正 */
+#colorPicker::-webkit-color-swatch-wrapper {
+    padding: 0;               /* 移除內距，讓顏色撐滿 */
+    border-radius: 50%;       /* 確保外層包裝也是圓的 */
+}
+
+#colorPicker::-webkit-color-swatch {
+    border: none;             /* 移除預設的醜邊框 */
+    border-radius: 50%;       /* 關鍵：強制內部的顏色塊變成圓形 */
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); /* 加入淡淡的內陰影增加質感 */
+}
+
+/* 2. 針對 Firefox 的修正 */
+#colorPicker::-moz-color-swatch {
+    border: none;
+    border-radius: 50%;
+}
+
+/* 3. 調整本體樣式 */
+#colorPicker {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    padding: 0;
+    border: 2px solid var(--line); /* 給它一個跟標籤一致的邊框會更美觀 */
+    background-color: transparent;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    transition: transform 0.2s ease;
+}
+
+#colorPicker:hover {
+    transform: scale(1.1); /* 懸停時稍微放大，增加互動感 */
+}
+
+/*===============以上顏色與筆================*/
 
 .brush-size-row {
     display: flex;

@@ -5,16 +5,16 @@
 window.ArtEchoScenarios = [
   {
     id: "snow_white",
-    title: "公主的等待",
+    title: "久違的見面",
     description: "一段關於權力、嫉妒與重生的心理旅程。妳將經歷從大廳到森林的轉變。",
-    image: "images/princes.png",
+    image: "images/family.png",
     clickable: true,
     // 內部章節設定
     chapters: {
       "1": {
-        title: "第一章：大廳的迎接",
-        desc: "妳是一名公主正站在大廳迎接新繼母。請描繪當下的氛圍，妳的心情與樣貌。",
-        img: "images/princes.png"
+        title: "第一章：久違的見面",
+        desc: "距離你上次回家已經過了一段時間了，很久沒見到家人的你，是以什麼樣的心情來面對他們呢? 請描繪你見到家人時的情緒與氛圍。",
+        img: "images/family.png"
       },
       "2": {
         title: "第二章：魔鏡的預言",
@@ -115,12 +115,70 @@ window.renderScenarios = function() {
       </div>
     `;
 
+
     if (scenario.clickable) {
       const link = document.createElement("a");
-      // 點擊後跳轉到 Studio，預設帶入第一章參數
       link.href = `Studio.html?scenario=${encodeURIComponent(scenario.id)}&chapter=1`;
       link.className = "scenario-link";
       link.innerHTML = contentHtml;
+
+      // 攔截點擊事件
+      link.addEventListener("click", function (event) {
+        event.preventDefault(); // 阻止預設跳轉行為
+
+
+        // 在 Story.js 裡面的 modalHtml 變數中，修改 video 部分：
+
+        const modalHtml = `
+          <div class="video-modal">
+            <div class="video-container">
+                <video id="introVideo" autoplay playsinline style="width: 100%; border-radius: 8px;">
+                    <source src="video/open.mp4" type="video/mp4">
+                    您的瀏覽器不支援影片播放。
+                </video>
+                
+                <div class="options-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; justify-content: center; align-items: center; background: rgba(0,0,0,0.4);">
+                    <div class="options-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                        <strong>你將要見到許久不見的家人，他是麼樣的狀態，可以畫出他的樣子嗎？</strong>
+                        <button class="option-btn" onclick="window.location.href='Studio.html?scenario=snow_white&chapter=1'" >溫柔的</button>
+                        <button class="option-btn" onclick="window.location.href='Studio.html?scenario=snow_white&chapter=1'">憤怒的</button>
+                        <button class="option-btn" onclick="window.location.href='Studio.html?scenario=snow_white&chapter=1'">難過的</button>
+                        <button class="option-btn" onclick="window.location.href='Studio.html?scenario=snow_white&chapter=1'">愉悅的</button>
+                    </div>
+                </div> 
+        
+            </div>
+          </div>
+        `;
+
+        const modal = document.createElement("div");
+        modal.innerHTML = modalHtml;
+        document.body.appendChild(modal);
+
+// 在攔截點擊事件的 function 內
+        const video = modal.querySelector("#introVideo");
+        const optionsOverlay = modal.querySelector(".options-overlay");
+
+// 確保徹底隱藏所有瀏覽器預設右鍵清單（防止使用者手動點選「顯示控制項」）
+        video.oncontextmenu = (e) => e.preventDefault();
+
+// 監聽影片結束事件
+        video.addEventListener("ended", function () {
+          // 1. 影片變暗
+          video.style.filter = "brightness(0.5)";
+          // 2. 顯示選項
+          optionsOverlay.style.display = "flex";
+
+          // 注意：這裡不要移除 modal，讓使用者選完章節再跳轉
+        });
+
+
+        // 關閉按鈕事件
+        modal.querySelector(".close-btn").addEventListener("click", function () {
+          document.body.removeChild(modal);
+        });
+      });
+
       card.appendChild(link);
     } else {
       card.innerHTML = contentHtml;

@@ -5,7 +5,7 @@
   --terracotta: #c66b3d;
   --sand: #e8d6b5;
   --mist: #f9f3ea;
-  --line: #dcc9a7;
+  --line: #0e0e0e;
   --shadow: rgba(26, 34, 41, 0.14);
 }
 * {
@@ -545,7 +545,6 @@ h3 {
   height: 180px;
   overflow: hidden;
   background: var(--mist);
-  border-bottom: 2px solid var(--terracotta);
 }
 
 .scenario-card-img img {
@@ -613,6 +612,70 @@ h3 {
 .scenario-card.locked .scenario-card-img img {
   filter: grayscale(50%);
 }
+/*====================影片=============*/
+.video-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.video-container {
+  position: relative;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  max-width: 800px;
+  width: 90%;
+}
+
+video {
+  display: block;
+}
+
+.video-container video {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.options-overlay strong {
+  grid-column: span 2; /* 關鍵：讓文字橫跨兩欄 */
+  font-size: 1.5rem;   /* 稍微加大一點更清晰 */
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.option-btn {
+  font-size: 1rem; /* 調整按鈕文字大小 */
+  padding: 10px 40px; /* 調整按鈕內部間距 */
+  border-radius: 8px; /* 調整按鈕圓角 */
+  background-color: #c57e21; /* 按鈕背景顏色 */
+  color: #ffffff; /* 按鈕文字顏色 */
+  border: none; /* 移除按鈕邊框 */
+  cursor: pointer; /* 滑鼠移上時顯示手型 */
+  transition: background-color 0.3s ease; /* 增加過渡效果 */
+}
+
+.option-btn:hover {
+  background-color: #8c5510; /* 滑鼠懸停時的背景顏色 */
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 兩列佈局 */
+  gap: 10px; /* 按鈕之間的間距 */
+  justify-items: center; /* 按鈕水平置中 */
+}
+
+/*====================================*/
 
 @media (prefers-reduced-motion: reduce) {
   #careTickerText {
