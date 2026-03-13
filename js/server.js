@@ -5,7 +5,7 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 const app = express();
 app.use(cors({
-  origin: 'https://art-echo-ten.vercel.app' // 或者是你的自定義網域
+  origin: 'https://art-echo-o-8ral.vercel' // 或者是你的自定義網域
 }));
 app.use(express.json());
 const PORT = process.env.PORT || 3000;
