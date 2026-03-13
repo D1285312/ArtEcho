@@ -1,0 +1,48 @@
+/* 瀑布流基礎佈局 */
+.cloud-grid {
+    column-count: 4; /* 預設 4 欄 */
+    column-gap: 20px;
+    padding: 20px 0;
+}
+
+/* 響應式：手機版變 2 欄 */
+@media (max-width: 992px) { .cloud-grid { column-count: 3; } }
+@media (max-width: 600px) { .cloud-grid { column-count: 2; } }
+
+/* 作品卡片 */
+.cloud-item {
+    break-inside: avoid; /* 防止卡片被欄位截斷 */
+    margin-bottom: 20px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.cloud-item:hover {
+    transform: translateY(-5px);
+}
+
+.cloud-item img {
+    width: 100%;
+    display: block; /* 去除圖片底部間隙 */
+    height: auto;
+}
+
+.cloud-info {
+    padding: 12px;
+}
+
+.cloud-info h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--ink);
+}
+
+.cloud-info p {
+    font-size: 0.8rem;
+    color: #7a8886;
+    margin: 4px 0 0;
+}
