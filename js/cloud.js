@@ -1,6 +1,6 @@
 import { StorageManager } from './storageManager.js';
 
-// 1. 定義存放於 ArtEcho/images/cloud 的模擬畫作 (後母主題)
+// 1. 40 張模擬畫作數據
 const cloudSimulationWorks = [
     // === 第一組：2ea1e253e5f7b158af1ebe62f2fe73a0 系列 (snow_white) ===
     { id: 1710310001000, src: 'images/cloud/2ea1e253e5f7b158af1ebe62f2fe73a0.jpg', name: '鏡中的倒影', author: '旅人 A', storyId: 'snow_white', storyTitle: '公主的等待', level: 1 },
@@ -54,62 +54,23 @@ const cloudSimulationWorks = [
 const LIKE_STORAGE_KEY = "artEchoCloudLikes";
 let currentAllWorks = [];
 
-/**
- * 2. 取得按讚數據
- */
+// 取得與儲存 Local按讚數
 function getLikeData() {
     const raw = localStorage.getItem(LIKE_STORAGE_KEY);
-    if (!raw) return {};
-    try { return JSON.parse(raw); } catch (e) { return {}; }
+    return raw ? JSON.parse(raw) : {};
 }
-
-/**
- * 3. 儲存按讚數據
- */
 function saveLikeData(data) {
     localStorage.setItem(LIKE_STORAGE_KEY, JSON.stringify(data));
 }
 
-/**
- * 4. 建立標籤篩選列
- */
-function buildTagBar(hasPersonalWorks) {
-    const tagBar = document.getElementById('cloudTags');
-    if (!tagBar) return;
-    tagBar.innerHTML = '';
-
-    const tags = new Set();
-    tags.add('全部');
-    cloudSimulationWorks.forEach(w => { if (w.storyTitle) tags.add(w.storyTitle); });
-    if (hasPersonalWorks) tags.add('我的作品');
-
-    tags.forEach((tag) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'tag-btn' + (tag === '全部' ? ' active' : '');
-        btn.textContent = tag;
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('#cloudTags .tag-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            renderCloudGallery(tag);
-        });
-        tagBar.appendChild(btn);
-    });
-}
-
-/**
- * 5. 處理愛心點擊邏輯 (記錄按讚數)
- */
 function handleLikeClick(btn, workId) {
     const likeData = getLikeData();
     const countDisplay = btn.querySelector('.like-count');
 
-    // 初始化該作品的數據
     if (!likeData[workId]) {
         likeData[workId] = { count: Math.floor(Math.random() * 50) + 10, isLiked: false };
     }
 
-    // 切換狀態
     if (likeData[workId].isLiked) {
         likeData[workId].count--;
         likeData[workId].isLiked = false;
@@ -120,96 +81,77 @@ function handleLikeClick(btn, workId) {
         btn.classList.add('active');
     }
 
-    // 更新顯示與儲存
     countDisplay.textContent = likeData[workId].count;
     saveLikeData(likeData);
 }
 
-/**
- * 6. 渲染畫廊主體
- */
+function buildTagBar(hasPersonal) {
+    const tagBar = document.getElementById('cloudTags');
+    if (!tagBar) return;
+    tagBar.innerHTML = '';
+
+    const tags = ['全部', '公主的等待', '仙度瑞拉的眼淚'];
+    if (hasPersonal) tags.push('我的作品');
+
+    tags.forEach(tag => {
+        const btn = document.createElement('button');
+        btn.className = 'tag-btn' + (tag === '全部' ? ' active' : '');
+        btn.textContent = tag;
+        btn.onclick = () => {
+            document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderCloudGallery(tag);
+        };
+        tagBar.appendChild(btn);
+    });
+}
+
 function renderCloudGallery(filterTag = '全部') {
     const cloudGrid = document.getElementById('cloudGrid');
-    if (!cloudGrid) return;
-
     const likeData = getLikeData();
 
     // 取得個人作品
-    let myPersonalWorks = [];
+    let myWorks = [];
     try {
-        const rawData = StorageManager.getAllWorks();
-        myPersonalWorks = rawData.map(w => ({
-            id: w.id || Date.now(),
-            src: w.dataUrl,
-            name: w.name || "我的情緒筆觸",
-            author: "我",
-            storyTitle: w.storyTitle
+        myWorks = StorageManager.getAllWorks().map(w => ({
+            id: w.id, src: w.dataUrl, name: w.name || "情緒筆觸", author: "我", storyTitle: w.storyTitle
         }));
-    } catch (e) {
-        console.warn("目前個人畫廊暫無資料");
-    }
+    } catch(e) {}
 
-    currentAllWorks = [...cloudSimulationWorks, ...myPersonalWorks];
+    currentAllWorks = [...cloudSimulationWorks, ...myWorks];
+    if (filterTag === '全部') currentAllWorks.sort(() => Math.random() - 0.5);
 
-    if (filterTag === '全部') {
-        currentAllWorks.sort(() => Math.random() - 0.5);
-    }
-
-    let worksToShow = currentAllWorks;
-    if (filterTag !== '全部') {
-        if (filterTag === '我的作品') {
-            worksToShow = currentAllWorks.filter(w => w.author === '我');
-        } else {
-            worksToShow = currentAllWorks.filter(w => w.storyTitle === filterTag);
-        }
-    }
+    let filtered = currentAllWorks;
+    if (filterTag === '我的作品') filtered = currentAllWorks.filter(w => w.author === '我');
+    else if (filterTag !== '全部') filtered = currentAllWorks.filter(w => w.storyTitle === filterTag);
 
     cloudGrid.innerHTML = '';
-    worksToShow.forEach(work => {
-        // 取得該作品的按讚狀態
-        if (!likeData[work.id]) {
-            likeData[work.id] = { count: Math.floor(Math.random() * 50) + 10, isLiked: false };
-        }
-        const workLikes = likeData[work.id];
-
+    filtered.forEach(work => {
+        if (!likeData[work.id]) likeData[work.id] = { count: Math.floor(Math.random() * 40) + 5, isLiked: false };
         const card = document.createElement('div');
         card.className = 'cloud-item';
         card.innerHTML = `
-            <img src="${work.src}" alt="${work.name}" loading="lazy">
+            <img src="${work.src}" loading="lazy">
             <div class="cloud-info">
                 <h4>${work.name}</h4>
                 <p>by ${work.author}</p>
             </div>
-            <button class="like-btn ${workLikes.isLiked ? 'active' : ''}" aria-label="收藏作品" data-id="${work.id}">
+            <button class="like-btn ${likeData[work.id].isLiked ? 'active' : ''}">
                 <span class="heart-icon">♥</span>
-                <span class="like-count">${workLikes.count}</span>
+                <span class="like-count">${likeData[work.id].count}</span>
             </button>
         `;
-
-        const likeBtn = card.querySelector('.like-btn');
-        likeBtn.addEventListener('click', (e) => {
+        card.querySelector('.like-btn').onclick = (e) => {
             e.stopPropagation();
-            handleLikeClick(likeBtn, work.id);
-        });
-
+            handleLikeClick(card.querySelector('.like-btn'), work.id);
+        };
         cloudGrid.appendChild(card);
     });
-    // 儲存初始化後的隨機按讚數
-    saveLikeData(likeData);
 }
 
-/**
- * 7. 初始化頁面
- */
 document.addEventListener('DOMContentLoaded', () => {
     let hasPersonal = false;
-    try {
-        const rawData = StorageManager.getAllWorks();
-        hasPersonal = Array.isArray(rawData) && rawData.length > 0;
-    } catch (e) {
-        hasPersonal = false;
-    }
-
+    try { hasPersonal = StorageManager.getAllWorks().length > 0; } catch(e) {}
     buildTagBar(hasPersonal);
     renderCloudGallery('全部');
 });

@@ -2,10 +2,10 @@
   "name": "artecho-backend",
   "version": "1.0.0",
   "description": "簡易驗證碼後端 (for ArtEcho)",
-  "main": "js/server.js",
+  "main": "api/index.js",
   "scripts": {
-    "start": "node js/server.js",
-    "dev": "nodemon js/server.js"
+    "start": "node api/index.js",
+    "dev": "nodemon api/index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
