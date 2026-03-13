@@ -1,19 +1,21 @@
-//  Express 後端：處理 /api/send-code 與 /api/login（含寄信）
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 const app = express();
-app.use(cors({
-  origin: 'https://art-echo-o-8ral.vercel.app' // 或者是你的自定義網域
-}));
-app.use(express.json());
-const PORT = process.env.PORT || 3000;
 
-// 暫存驗證資料：account -> { code, expiresAt, password }
+// 1. CORS 設定：務必補上 .app 並確保沒有多餘斜槓
+app.use(cors({
+  origin: 'https://art-echo-o-8ral.vercel.app'
+}));
+
+app.use(express.json());
+
+// 2. 暫存驗證資料 (注意：Vercel 重啟後 Map 會清空)
 const store = new Map();
 const CODE_TTL_MS = 5 * 60 * 1000; // 5 分鐘
 
+// 3. 建立郵件傳送器
 async function createTransporter() {
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
     return nodemailer.createTransport({
@@ -27,7 +29,7 @@ async function createTransporter() {
     });
   }
 
-  // 若未提供 SMTP 設定，建立 Ethereal 測試帳號（開發用）
+  // 備用測試帳號 (如果環境變數沒抓到)
   const testAccount = await nodemailer.createTestAccount();
   return nodemailer.createTransport({
     host: 'smtp.ethereal.email',
@@ -42,7 +44,14 @@ async function createTransporter() {
 
 let transporterPromise = createTransporter();
 
-app.post('/send-code', async (req, res) => {
+// 4. API 路由定義
+// 基礎路徑檢查
+app.get('/api', (req, res) => {
+  res.json({ status: 'ArtEcho API is running' });
+});
+
+// 寄送驗證碼
+app.post('/api/send-code', async (req, res) => {
   const { account, password } = req.body || {};
   if (!account || !password) {
     return res.status(400).json({ ok: false, message: 'account 與 password 必填' });
@@ -51,7 +60,7 @@ app.post('/send-code', async (req, res) => {
   const code = String(Math.floor(100000 + Math.random() * 900000));
   const expiresAt = Date.now() + CODE_TTL_MS;
 
-  // 儲存暫存資訊
+  // 儲存至記憶體
   store.set(account, { code, expiresAt, password });
 
   try {
@@ -65,29 +74,28 @@ app.post('/send-code', async (req, res) => {
       html: `<p>您的驗證碼為： <strong>${code}</strong></p><p>此驗證碼會在五分鐘後失效。</p>`,
     });
 
-    const resp = { ok: true, message: '驗證碼已寄出' };
-
-    // 如果使用 ethereal，回傳預覽連結（方便開發）
-    if (nodemailer.getTestMessageUrl && nodemailer.getTestMessageUrl(info)) {
-      resp.previewUrl = nodemailer.getTestMessageUrl(info);
-    }
-
-    return res.json(resp);
+    return res.json({ ok: true, message: '驗證碼已寄出' });
   } catch (err) {
     console.error('send-code error', err);
     return res.status(500).json({ ok: false, message: '寄送驗證碼失敗' });
   }
 });
 
-app.post('/login', (req, res) => {
+// 登入驗證
+app.post('/api/login', (req, res) => {
   const { account, password, code } = req.body || {};
+  
   if (!account || !password || !code) {
-    return res.status(400).json({ ok: false, message: 'account, password, code 三項皆需提供' });
+    return res.status(400).json({ ok: false, message: '請輸入帳號、密碼與驗證碼' });
   }
 
   const entry = store.get(account);
+  
+  // 排查日誌：在 Vercel 控制台可以看到這個輸出
+  console.log(`正在驗證帳號: ${account}, 記憶體中是否有紀錄: ${!!entry}`);
+
   if (!entry) {
-    return res.status(400).json({ ok: false, message: '驗證碼不存在或已過期' });
+    return res.status(400).json({ ok: false, message: '驗證碼不存在或已過期，請重新獲取' });
   }
 
   if (Date.now() > entry.expiresAt) {
@@ -103,21 +111,9 @@ app.post('/login', (req, res) => {
     return res.status(400).json({ ok: false, message: '密碼錯誤' });
   }
 
-  // 驗證成功，清除暫存並回傳成功
   store.delete(account);
   return res.json({ ok: true, message: '登入成功' });
 });
 
-// 清理過期項目的簡單排程
-setInterval(() => {
-  const now = Date.now();
-  for (const [k, v] of store.entries()) {
-    if (v.expiresAt <= now) store.delete(k);
-  }
-}, 60 * 1000);
-
-app.listen(PORT, () => {
-  console.log(`Auth server listening on http://localhost:${PORT}`);
-});
-
+// 5. 重要：導出 app 供 Vercel 使用
 module.exports = app;
