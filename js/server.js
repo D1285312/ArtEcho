@@ -120,3 +120,4 @@ app.listen(PORT, () => {
   console.log(`Auth server listening on http://localhost:${PORT}`);
 });
 
+module.exports = app;
