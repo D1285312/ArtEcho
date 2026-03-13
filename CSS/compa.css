@@ -1,6 +1,6 @@
-/* =========================================================================
+/* ==========================================================================
    1. 全域變數與基礎設定 (Root & Global)
-   ========================================================================= */
+   ========================================================================== */
 :root {
     --paper: #f6efe3;
     --ink: #1a2229;
@@ -241,11 +241,17 @@ h1, h2, h3 {
     line-height: 1.75;
     margin: 14px 0 0;
 }
-/*官方健康資訊 cta*/
+
+/* =========================================
+   2. 官方健康資訊 (CTA Buttons)
+   ========================================= */
+/* =========================================
+   2. 健康資訊按鈕 (CTA Buttons)
+   ========================================= */
 .cta-row {
-    margin-top: 24px;
+    margin-top: 30px;
     display: flex;
-    gap: 10px;
+    gap: 12px;
     flex-wrap: wrap;
 }
 
@@ -253,36 +259,177 @@ h1, h2, h3 {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    text-decoration: none;
-    padding: 10px 16px;
+    padding: 10px 20px;
     border-radius: 999px;
-    border: 1px solid transparent;
     font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-bottom: 20px;
 }
 
-.cta-btn.primary {
-    background: rgb(194, 105, 61);
-    border-color: rgb(185, 100, 57);
+/* 按鈕顏色統一管理 */
+.cta-btn.primary,
+.cta-btn.secondary {
+    background: #c2693d;
+    border: 1px solid #b96439;
     color: #fffaf3;
 }
 
-.cta-btn.secondary {
-    background: rgb(194, 105, 61);
-    border-color: rgb(185, 100, 57);
-    color: #fafafa;
-}
 .cta-btn:hover {
-    transform: scale(1.05); /* 增加一點縮放效果 */
-    transition: all 0.3s ease; /* 增加過渡效果 */
-    cursor: pointer;
-}
-.cta-btn:focus,
-.cta-btn:active {
-    background-color: #802d0b; /* 點選後維持的背景顏色 */
-    color: #fafafa; /* 文字顏色 */
-    border-color: #802d0b; /* 邊框顏色 */
+    transform: scale(1.05);
+    filter: brightness(1.1);
 }
 
+.cta-btn:focus,
+.cta-btn:active {
+    background-color: #802d0b;
+    border-color: #802d0b;
+    outline: none;
+}
+
+/* =========================================
+   3. 輪播圖外層結構 (Carousel)
+   ========================================= */
+.carousel {
+    position: relative;
+    max-width: 950px; /* 增加寬度以容納並排內容 */
+    margin: 40px auto;
+    overflow: hidden;
+}
+
+.carousel-images {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+}
+
+.carousel-images figure {
+    flex: 0 0 100%;
+    margin: 0;
+    padding: 10px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* =========================================
+   4. 圖片與訊息欄並排區塊 (Content Wrapper)
+   ========================================= */
+.content-wrapper {
+    display: flex;
+    flex-direction: row; /* 關鍵：左右並排 */
+    align-items: stretch; /* 高度一致 */
+    justify-content: center;
+    gap: 40px;
+    width: 100%;
+    margin-bottom: 25px;
+}
+
+/* 海報圖片修正 */
+.content-wrapper img {
+    width: 100%;
+    max-width: 380px; /* 限制圖片的最大寬度 */
+    height: auto; /* 確保圖片比例不變 */
+    object-fit: cover; /* 確保圖片填充區域 */
+}
+
+/* 訊息欄設計 (原本紅框位置) */
+.info-box {
+    flex: 0 0 380px; /* 固定訊息欄寬度，防止文字擠壓 */
+    background-color: #fdf6ec;
+    padding: 30px;
+    border-radius: 24px;
+    border: 1px solid #eaded2;
+    text-align: left;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+}
+
+.info-box h4 {
+    margin: 0 0 15px 0;
+    font-size: 1.4rem;
+    color: #c87a50;
+    border-bottom: 2px solid #eaded2;
+    padding-bottom: 10px;
+}
+
+.info-box p {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: #4a4a4a;
+    margin-bottom: 15px;
+}
+
+.info-list {
+    margin: 0;
+    padding-left: 20px;
+    list-style-type: circle;
+}
+
+.info-list li {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+/* =========================================
+   5. 文字說明與分頁點 (Footer & Dots)
+   ========================================= */
+.figure-with-row figcaption {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #333;
+    margin-top: 10px;
+}
+
+.note {
+    font-size: 0.9rem;
+    color: #888;
+    margin-top: 4px;
+}
+
+.carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    background-color: #ccc;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.dot.active {
+    background-color: #c87a50;
+    transform: scale(1.2);
+}
+.row-container figcaption {
+    font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif; /* 統一字體 */
+    font-size: 1.25rem; /* 統一字體大小 */
+    font-weight: bold; /* 統一字重 */
+    color: #333; /* 統一字體顏色 */
+}
+
+/* =========================================
+   6. 響應式手機版調整
+   ========================================= */
+@media (max-width: 850px) {
+    .content-wrapper {
+        flex-direction: column; /* 改為上下排列 */
+        align-items: center;
+        gap: 20px;
+    }
+
+    .info-box, .content-wrapper img {
+        flex: 0 0 auto;
+        width: 100%;
+        max-width: 450px;
+    }
+}
 /* ==========================================================================
    6. 畫廊系統 (Gallery)
    ========================================================================== */

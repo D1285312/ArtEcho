@@ -118,4 +118,48 @@
     // 如果需要，將 `toggleResource` 綁定到全域作用域
     window.toggleResource = toggleResource;
   })();
+  document.addEventListener("DOMContentLoaded", function () {
+    const images = document.querySelector(".carousel-images");
+    const dots = document.querySelectorAll(".dot");
+    let currentIndex = 0;
+    let startX = 0;
+    let endX = 0;
+
+    // 更新圖片和點的狀態
+    const updateCarousel = (index) => {
+      images.style.transform = `translateX(-${index * 100}%)`;
+      dots.forEach((dot, i) => {
+        dot.classList.toggle("active", i === index);
+      });
+    };
+
+    // 綁定點擊事件到點
+    dots.forEach((dot, index) => {
+      dot.addEventListener("click", function () {
+        currentIndex = index;
+        updateCarousel(currentIndex);
+      });
+    });
+
+    // 監聽觸控開始
+    images.addEventListener("touchstart", (e) => {
+      startX = e.touches[0].clientX;
+    });
+
+    // 監聽觸控結束
+    images.addEventListener("touchend", (e) => {
+      endX = e.changedTouches[0].clientX;
+      const diff = endX - startX;
+
+      if (diff > 50) {
+        // 向右滑動
+        currentIndex = Math.max(0, currentIndex - 1);
+      } else if (diff < -50) {
+        // 向左滑動
+        currentIndex = Math.min(dots.length - 1, currentIndex + 1);
+      }
+
+      updateCarousel(currentIndex);
+    });
+  });
 })();
