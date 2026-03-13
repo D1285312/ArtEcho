@@ -11,7 +11,8 @@
 
 /* 作品卡片 */
 .cloud-item {
-    break-inside: avoid; /* 防止卡片被欄位截斷 */
+    position: relative;
+    break-inside: avoid;
     margin-bottom: 20px;
     background: white;
     border-radius: 12px;
@@ -19,6 +20,44 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     transition: transform 0.3s ease;
     cursor: pointer;
+}
+
+/* 愛心按鈕樣式 */
+.like-btn {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+    z-index: 10;
+    font-size: 1.2rem;
+    color: #ccc; /* 預設灰色 */
+}
+
+.like-btn:hover {
+    transform: scale(1.1);
+    background: #fff;
+}
+
+/* 點擊後的狀態 */
+.like-btn.active {
+    color: #e74c3c; /* 變回紅色 */
+    animation: heartBeat 0.3s linear;
+}
+
+@keyframes heartBeat {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1.1); }
 }
 
 .cloud-item:hover {
