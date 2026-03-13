@@ -42,7 +42,7 @@ async function createTransporter() {
 
 let transporterPromise = createTransporter();
 
-app.post('/api/send-code', async (req, res) => {
+app.post('/send-code', async (req, res) => {
   const { account, password } = req.body || {};
   if (!account || !password) {
     return res.status(400).json({ ok: false, message: 'account 與 password 必填' });
@@ -79,7 +79,7 @@ app.post('/api/send-code', async (req, res) => {
   }
 });
 
-app.post('/api/login', (req, res) => {
+app.post('/login', (req, res) => {
   const { account, password, code } = req.body || {};
   if (!account || !password || !code) {
     return res.status(400).json({ ok: false, message: 'account, password, code 三項皆需提供' });
