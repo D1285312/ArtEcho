@@ -29,7 +29,7 @@ export const GeminiService = {
      * 核心呼叫函數
      */
     async call({ systemPrompt, userMessage, chatHistory, onLoading, onSuccess, onError }) {
-        if (!this.apiKey || this.apiKey === "YOUR_API_KEY") {
+        if (!this.apiKey || this.apiKey === "***REMOVED***") {
             if (onError) onError("API Key 尚未設定，請檢查 Vercel 環境變數。");
             return;
         }
