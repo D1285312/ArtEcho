@@ -107,29 +107,6 @@ Possible technologies:
 
 ---
 
-# System Workflow
-User Input
-│
-▼
-AI Dialogue System
-│
-▼
-Emotion Analysis
-│
-▼
-Emotion Data Vector
-│
-▼
-Generative Art Model
-│
-▼
-Generated Artwork
-│
-▼
-Self-awareness Feedback
-
----
-
 # Tech Stack
 
 ### AI / Machine Learning
