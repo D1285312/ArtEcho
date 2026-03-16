@@ -45,7 +45,7 @@ ArtEcho 系統主要包含四個核心模組：
 ## 1. Dialogue Interaction Module
 與使用者進行自然語言對話並收集情緒相關文本資料。
 
-Possible technologies:
+Technologies:
 - LLM API
 - RAG (Retrieval-Augmented Generation)
 
