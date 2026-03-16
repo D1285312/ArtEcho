@@ -108,3 +108,73 @@ Possible technologies:
 ---
 
 # System Workflow
+User Input
+│
+▼
+AI Dialogue System
+│
+▼
+Emotion Analysis
+│
+▼
+Emotion Data Vector
+│
+▼
+Generative Art Model
+│
+▼
+Generated Artwork
+│
+▼
+Self-awareness Feedback
+
+---
+
+# Tech Stack
+
+### AI / Machine Learning
+
+- Large Language Models (LLM)
+- Emotion Analysis
+- Generative Art Models
+- RAG
+
+### Backend
+
+- Python
+- API Server
+
+### Frontend
+
+- Web Interface
+- Interactive Visualization
+
+---
+
+# Target Users
+
+本系統主要面向：
+
+- 青少年
+- 年輕族群
+- 需要情緒表達管道的人
+- 對 AI 藝術有興趣的使用者
+
+---
+
+# Future Development
+
+未來可能擴展方向：
+
+- 情緒長期追蹤系統
+- 多模態互動（語音 / 表情）
+- VR / 沉浸式藝術體驗
+- 心理健康輔助工具整合
+
+---
+
+# Disclaimer
+
+ArtEcho 僅作為 **情緒覺察與藝術互動工具**，並不取代專業心理醫療或心理諮商服務。
+
+若使用者有嚴重心理困擾，仍建議尋求專業心理協助。
