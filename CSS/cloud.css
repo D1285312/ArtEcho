@@ -1,6 +1,12 @@
 /* 1. 基礎佈局與全域背景修正 */
 body {
     background-color: #fffdfa !important; /* 統一為 ArtEcho 畫布米色 */
+    background-image:
+            url('../images/share.png'),
+            linear-gradient(145deg, var(--paper), var(--mist));
+    background-repeat: repeat, no-repeat;
+    background-size: auto, cover;
+    background-attachment: fixed, fixed;
 }
 
 .cloud-grid {
@@ -129,4 +135,10 @@ body {
 
 .like-btn:active {
     transform: scale(0.9);
+}
+
+.panel.reveal.delay-1{
+    background-color: rgb(255, 251, 245) !important; /* 或者使用 #fffdf8 (手帳風格溫潤白) */
+    background-image: none !important;    /* 如果不想被底層小恐龍或背景圖透上來，可以加上這行 */
+    box-shadow: 0 20px 40px rgba(110, 90, 70, 0.15) !important; /* 增強陰影讓厚紙板立體感更明顯 */
 }

@@ -1,78 +1,122 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const nodemailer = require('nodemailer');
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import ModelClient, { isUnexpected } from "@azure-rest/ai-inference";
+import { AzureKeyCredential } from "@azure/core-auth";
+import { generateStoryScenario } from "./storyGenerator.js";
+
+dotenv.config();
+
 const app = express();
 
-// CORS 設定：確保網域正確
+// 開發時允許 WebStorm preview 的 origin
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:63342',
+  'http://127.0.0.1:63342',
+  'https://art-echo-o-8ral.vercel.app/'
+];
+
 app.use(cors({
-  origin: 'https://art-echo-o-8ral.vercel.app'
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('CORS not allowed'), false);
+  }
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
-// 雖然 Vercel 會清空 Map，但我們留著 send-code 邏輯來寄信
-const store = new Map();
+// 測試用健康檢查路由
+app.get('/api/health', (req, res) => res.json({ ok: true, status: "伺服器運行中" }));
 
-async function createTransporter() {
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
+// 1. 聊天互動路由（串接 CHAT_GITHUB_TOKEN 與 CHAT_MODEL）
+app.post('/api/chat', async (req, res) => {
+  const token = process.env.CHAT_GITHUB_TOKEN;
+  const endpoint = process.env.GITHUB_MODELS_BASE_URL || "https://models.github.ai/inference";
+
+  if (!token) {
+    return res.status(500).json({ error: '伺服器未設定 CHAT_GITHUB_TOKEN' });
+  }
+
+  const { systemPrompt, userMessage, chatHistory } = req.body || {};
+  const messages = [];
+
+  if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
+  if (Array.isArray(chatHistory)) {
+    chatHistory.forEach(m => {
+      messages.push({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.text });
     });
   }
-  const testAccount = await nodemailer.createTestAccount();
-  return nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
-    secure: false,
-    auth: { user: testAccount.user, pass: testAccount.pass },
-  });
+  messages.push({ role: 'user', content: userMessage || '你好，我完成畫作了。' });
+
+  try {
+    const client = ModelClient(endpoint, new AzureKeyCredential(token));
+    const response = await client.path("/chat/completions").post({
+      body: {
+        messages: messages,
+        model: process.env.CHAT_MODEL || "openai/gpt-4o-mini",
+        max_tokens: 500,
+        temperature: 0.7
+      }
+    });
+
+    console.log(JSON.stringify(response.body, null, 2));
+
+    if (isUnexpected(response)) {
+      throw new Error(response.body.error?.message || "模型呼叫失敗");
+    }
+
+    const content =
+        response.body.choices?.[0]?.message?.content;
+
+    const aiText =
+        typeof content === "string"
+            ? content
+            : content?.map(c => c.text || "").join("");
+    return res.json({ text: aiText });
+  } catch (err) {
+    console.error('API 錯誤:', err);
+    return res.status(500).json({ error: 'AI 伺服器錯誤' });
+  }
+});
+
+// 2. 繪畫故事劇情生成路由
+// 💡 此處直接調用 storyGenerator.js，內部已完全與 STORY_GITHUB_TOKEN 和 STORY_MODEL 綁定
+app.post('/api/story', async (req, res) => {
+  // 💡 在這裡明確定義、明確讀取故事專用的環境變數
+  const token = process.env.STORY_GITHUB_TOKEN;
+  const model = process.env.STORY_MODEL || "openai/gpt-4o-mini";
+
+  if (!token) {
+    return res.status(500).json({ error: '伺服器未設定 STORY_GITHUB_TOKEN' });
+  }
+
+  const { style, feeling, prompt } = req.body || {};
+  console.log(`🎨 收到故事生成請求 - 風格: ${style || '未指定'}, 心情: ${feeling || '未指定'}`);
+
+  try {
+    // 💡 把環境變數連同前端資料，一起封裝進物件傳過去
+    const story = await generateStoryScenario({
+      style,
+      feeling,
+      prompt,
+      token, // 傳入 Token
+      model  // 傳入指定的模型名稱
+    });
+
+    return res.json({ story });
+  } catch (err) {
+    console.error('❌ 劇情生成失敗:', err);
+    return res.status(500).json({ error: err.message || 'AI 劇情生成失敗' });
+  }
+});
+
+// 啟動伺服器
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3001;
+  app.listen(PORT, () => console.log(`🚀 API 伺服器已啟動: http://localhost:${PORT}`));
 }
 
-let transporterPromise = createTransporter();
-
-// 1. 寄信 API (維持原樣，讓你可以收到信)
-app.post('/api/send-code', async (req, res) => {
-  const { account } = req.body || {};
-  if (!account) return res.status(400).json({ ok: false, message: '請輸入帳號' });
-
-  const code = String(Math.floor(100000 + Math.random() * 900000));
-  
-  try {
-    const transporter = await transporterPromise;
-    await transporter.sendMail({
-      from: process.env.FROM_EMAIL || 'ArtEcho <no-reply@artecho.local>',
-      to: account,
-      subject: 'ArtEcho 驗證碼',
-      html: `<p>您的驗證碼為： <strong>${code}</strong></p>`
-    });
-    return res.json({ ok: true, message: '驗證碼已寄出' });
-  } catch (err) {
-    console.error('寄信失敗:', err);
-    return res.status(500).json({ ok: false, message: '寄送失敗' });
-  }
-});
-
-// 2. 登入 API (改成只要有輸入驗證碼就通過)
-app.post('/api/login', (req, res) => {
-  const { account, code } = req.body || {};
-
-  // 核心改動：只要前端有傳 code 過來（不論是多少），都回傳成功
-  if (code && code.length > 0) {
-    console.log(`[通行授權] 帳號 ${account} 使用驗證碼 ${code} 嘗試登入，已強制放行。`);
-    return res.json({ 
-      ok: true, 
-      message: '登入成功（快速通行模式）' 
-    });
-  }
-
-  return res.status(400).json({ ok: false, message: '請輸入驗證碼' });
-});
-
-module.exports = app;
+// 這是 Vercel Serverless Functions 必須的匯出
+export default app;

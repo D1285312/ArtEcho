@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
   <link rel="stylesheet" href="CSS/styles.css">
   <link rel="stylesheet" href="CSS/studio.css">
+  <script src="js/authGuard.js"></script>
 </head>
 <body>
 <div id="aiModal" class="ai-modal">
@@ -67,6 +68,13 @@
     <div class="studio-layout">
       <div class="canvas-wrap">
         <canvas id="paintCanvas"></canvas>
+        <canvas id="gridOverlay" style="position:absolute; left:0; top:0; pointer-events:none; display:none;"></canvas>
+
+        <!-- 固定在畫布右下角，不再跟著滑鼠移動 -->
+        <div id="gridTooltip"
+             style="position:absolute; right:12px; bottom:12px; left:auto; top:auto; pointer-events:none; display:none; background:rgba(0,0,0,0.82); color:white; padding:8px 10px; border-radius:8px; font-size:13px; z-index:50; white-space:nowrap; box-shadow:0 4px 12px rgba(0,0,0,0.18);">
+        </div>
+
         <div id="playbackIndicator" class="playback-overlay">正在重現筆跡...</div>
       </div>
 
@@ -80,11 +88,13 @@
           <div class="brush-opt" data-type="oil"><span>🎨</span>油畫筆</div>
           <div class="brush-opt" data-type="sketch"><span>✏️</span>素描鉛筆</div>
         </div>
+
         <div class="control-group">
           <label>顏色與粗細</label>
           <div class="color-input-wrapper"><input id="colorPicker" type="color" value="#2f5d4f"></div>
           <div class="brush-size-row"><input id="brushSize" type="range" min="1" max="50" value="8"><span id="brushSizeText">8 px</span></div>
         </div>
+
         <div class="control-group">
           <div style="display:flex; gap:8px; margin-bottom: 15px;">
             <button class="btn icon-btn active-mode" id="brushBtn"><span class="material-symbols-outlined">edit</span></button>
@@ -94,7 +104,10 @@
             <button class="btn icon-btn warn" id="clearBtn"><span class="material-symbols-outlined">delete</span></button>
           </div>
         </div>
-        <button class="cta-btn primary" id="analyzeBtn" style="width:100%;">讀取物理數據</button>
+
+        <button class="cta-btn primary" id="analyzeBtn" style="width:100%">讀取物理數據</button>
+        <button class="btn" id="toggleGridBtn" style="width:100%; margin-top:8px;">顯示區域網格</button>
+
         <div class="analysis-panel" id="analysisDisplay" style="display:none;">
           <div id="resultsArea"></div>
           <button class="cta-btn" id="startTalkBtn" style="width:100%; margin-top:15px; background:var(--terracotta); color:white; border:none;">與 AI 聊聊心情</button>
@@ -104,7 +117,7 @@
   </main>
 </div>
 
-<script src="js/Story.js"></script>
+<script type="module" src="js/Story.js"></script>
 <script type="module">
   import { AnalysisAPI } from './js/analysisAPI.js';
   import { GeminiService } from './js/geminiService.js';
@@ -113,14 +126,157 @@
 
   const canvas = document.getElementById("paintCanvas");
   const ctx = canvas.getContext("2d");
+  const gridOverlay = document.getElementById('gridOverlay');
+  const gridCtx = gridOverlay.getContext ? gridOverlay.getContext('2d') : null;
 
   let drawing = false, isEraser = false, history = [], drawingSteps = [], currentStroke = null;
   let brushType = 'marker', isPlaying = false, currentStrokeIdx = 0, currentPointIdx = 0, animationId = null;
-  let chatLog = [];
-  let startTime = null;
-  let currentScenarioId = 'snow_white';
-  let currentChapterLevel = '1';
-  let currentScenarioTitle = '';
+  let chatLog = [], startTime = null, currentScenarioId = 'Family', currentChapterLevel = '1', currentScenarioTitle = '';
+
+  let gridVisible = false;
+  const GRID_STEP_DEFAULT = 24;
+  const toggleGridBtn = document.getElementById('toggleGridBtn');
+  let gridCellStats = {};
+  let gridCellTotalSec = 0;
+  const gridTooltip = document.getElementById('gridTooltip');
+
+  function initGridOverlay() {
+    if (!gridOverlay) return;
+    resizeOverlay();
+    window.addEventListener('resize', resizeOverlay);
+
+    if (toggleGridBtn) {
+      toggleGridBtn.onclick = () => {
+        gridVisible = !gridVisible;
+        gridOverlay.style.display = gridVisible ? 'block' : 'none';
+        gridOverlay.style.pointerEvents = gridVisible ? 'auto' : 'none';
+        toggleGridBtn.textContent = gridVisible ? '隱藏區域網格' : '顯示區域網格';
+
+      };
+    }
+
+    if (gridOverlay) {
+      gridOverlay.addEventListener('mousemove', (ev) => {
+        if (!gridVisible) return;
+
+        const rect = gridOverlay.getBoundingClientRect();
+        const x = ev.clientX - rect.left;
+        const y = ev.clientY - rect.top;
+        const step = GRID_STEP_DEFAULT;
+        const cx = Math.floor(x / step);
+        const cy = Math.floor(y / step);
+        const key = `${cx},${cy}`;
+        const cell = gridCellStats[key];
+
+        if (cell) {
+          const avgP = cell.points > 0 ? (cell.totalPressure / cell.points).toFixed(2) : '0.00';
+          gridTooltip.innerHTML = `<strong>格子 ${cx},${cy}</strong><br>${Math.round(cell.seconds * 10) / 10}s / ${avgP}`;
+        } else {
+          gridTooltip.innerHTML = `<strong>格子 ${cx},${cy}</strong><br>尚未繪製`;
+        }
+
+      });
+
+      // 故意不清掉，保留最後一次滑到的格子資訊
+      gridOverlay.addEventListener('mouseleave', () => {});
+    }
+  }
+
+  function resizeOverlay() {
+    if (!gridOverlay) return;
+    const rect = canvas.getBoundingClientRect();
+    gridOverlay.width = rect.width;
+    gridOverlay.height = rect.height;
+    gridOverlay.style.width = rect.width + 'px';
+    gridOverlay.style.height = rect.height + 'px';
+    gridOverlay.style.left = canvas.offsetLeft + 'px';
+    gridOverlay.style.top = canvas.offsetTop + 'px';
+
+    if (gridVisible) renderGridOverlay(GRID_STEP_DEFAULT);
+  }
+
+  function clearGridOverlay() {
+    if (!gridCtx) return;
+    gridCtx.clearRect(0, 0, gridOverlay.width, gridOverlay.height);
+  }
+
+  function renderGridOverlay(step = GRID_STEP_DEFAULT) {
+    if (!gridCtx) return;
+    clearGridOverlay();
+
+    const cols = Math.ceil(canvas.width / step);
+    const rows = Math.ceil(canvas.height / step);
+    const cellStats = {};
+
+    drawingSteps.forEach(stroke => {
+      for (let i = 0; i < stroke.points.length; i++) {
+        const p = stroke.points[i];
+        const next = stroke.points[i + 1];
+        const dt = next ? Math.max(1, (next.t - p.t)) : 16;
+        const sec = dt / 1000;
+        const cx = Math.floor(p.x / step);
+        const cy = Math.floor(p.y / step);
+        const key = `${cx},${cy}`;
+
+        if (!cellStats[key]) {
+          cellStats[key] = {
+            seconds: 0,
+            points: 0,
+            totalPressure: 0,
+            x: cx,
+            y: cy
+          };
+        }
+
+        cellStats[key].seconds += sec;
+        cellStats[key].points += 1;
+        cellStats[key].totalPressure += (p.pressure || 0.5);
+      }
+    });
+
+    let maxSec = 0;
+    gridCellTotalSec = 0;
+
+    Object.values(cellStats).forEach(c => {
+      if (c.seconds > maxSec) maxSec = c.seconds;
+      gridCellTotalSec += c.seconds;
+    });
+
+    if (maxSec === 0) maxSec = 1;
+
+    Object.values(cellStats).forEach(c => {
+      const intensity = Math.min(1, c.seconds / maxSec);
+      const alpha = 0.18 + 0.62 * intensity;
+      const avgP = c.points > 0 ? (c.totalPressure / c.points).toFixed(2) : '0.00';
+      const label = `${Math.round(c.seconds * 10) / 10}s / ${avgP}`;
+
+      gridCtx.fillStyle = `rgba(198,107,61,${alpha})`;
+      gridCtx.fillRect(c.x * step, c.y * step, step, step);
+
+      gridCtx.fillStyle = 'rgba(0,0,0,0.68)';
+      gridCtx.font = '9px Noto Sans TC, Arial';
+      gridCtx.fillText(label, c.x * step + 3, c.y * step + 10);
+    });
+
+    gridCellStats = cellStats;
+
+    gridCtx.strokeStyle = 'rgba(0,0,0,0.06)';
+    gridCtx.lineWidth = 1;
+
+    for (let x = 0; x <= cols; x++) {
+      gridCtx.beginPath();
+      gridCtx.moveTo(x * step + 0.5, 0);
+      gridCtx.lineTo(x * step + 0.5, rows * step);
+      gridCtx.stroke();
+    }
+
+    for (let y = 0; y <= rows; y++) {
+      gridCtx.beginPath();
+      gridCtx.moveTo(0, y * step + 0.5);
+      gridCtx.lineTo(cols * step, y * step + 0.5);
+      gridCtx.stroke();
+    }
+  }
 
   function getUrlParam(key, defaultValue) {
     const params = new URLSearchParams(window.location.search);
@@ -143,8 +299,10 @@
 
   function initCanvas() {
     const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width; canvas.height = rect.height;
-    ctx.fillStyle = "#fffdfa"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    ctx.fillStyle = "#fffdfa";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
   document.querySelectorAll('.brush-opt').forEach(opt => {
@@ -158,17 +316,14 @@
     };
   });
 
-  // 🌟 核心繪圖邏輯：區分筆尖與壓力
   canvas.onpointerdown = (e) => {
-    if (e.pointerType === 'touch') return; // 僅限筆尖
+    if (e.pointerType === 'touch') return;
 
-    // 🌟 關鍵修正：在回放中途下筆，必須先確實停下動畫並清理標籤
     if (isPlaying) stopPlayback(true);
     if (!startTime || startTime === 0) {
       startTime = Date.now();
     }
 
-    // 存下目前的畫布快照，這是 Undo 的基準
     history.push(canvas.toDataURL());
 
     drawing = true;
@@ -178,13 +333,14 @@
       size: parseInt(document.getElementById("brushSize").value),
       points: [{ x: e.offsetX, y: e.offsetY, pressure: e.pressure || 0.5, t: Date.now() }]
     };
+
     canvas.setPointerCapture(e.pointerId);
   };
 
   canvas.onpointermove = (e) => {
     if (e.pointerType === 'touch') return;
     if (drawing) {
-      const last = currentStroke.points[currentStroke.points.length-1];
+      const last = currentStroke.points[currentStroke.points.length - 1];
       const now = {
         x: e.offsetX,
         y: e.offsetY,
@@ -192,9 +348,6 @@
         t: Date.now()
       };
 
-      // 壓力渲染
-      const sensitivity = 2.5;
-      const baseScale = 0.5;
       const dynamicSize = currentStroke.size * (now.pressure * 1.5);
       const tempStroke = { ...currentStroke, size: dynamicSize };
 
@@ -218,10 +371,16 @@
       alert("畫布還是空的喔！請先畫些東西再進行分析。");
       return;
     }
+
     document.getElementById("analysisDisplay").style.display = "block";
+
     const stats = AnalysisAPI.getPhysicalStats(ctx, canvas.width, canvas.height, drawingSteps);
+    const timeRes = AnalysisAPI.analyzeObjectsWithTime(ctx, canvas.width, canvas.height, drawingSteps);
 
     let totalSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
+    if (!totalSeconds && timeRes && timeRes.totalSeconds) {
+      totalSeconds = Math.round(timeRes.totalSeconds);
+    }
 
     const formatTime = (s) => {
       if (s < 0 || s > 86400) return "0分0秒";
@@ -230,16 +389,40 @@
       return `${m}分${sec}秒`;
     };
 
+    let objHtml = '';
+    if (timeRes && timeRes.breakdown && timeRes.breakdown.length > 0) {
+      objHtml += `<div class="analysis-section"><h4>物件耗時分布</h4><ul>`;
+      timeRes.breakdown.forEach(b => {
+        objHtml += `<li style="margin-bottom:6px;"><strong>${b.label}</strong>：${b.seconds}s (${b.percent}%)，平均壓力 ${b.avgPressure}</li>`;
+      });
+      objHtml += `</ul></div>`;
+
+      const top = timeRes.breakdown[0];
+      if (top && top.id !== 0 && top.percent >= 30) {
+        objHtml += `<div style="margin-top:8px; color:var(--terracotta); font-weight:600;">觀察：你在 ${top.label} 花了特別多的時間（${top.seconds}s，約 ${top.percent}%）。</div>`;
+      }
+    }
+
+    if (gridOverlay && gridCtx) {
+      gridVisible = true;
+      gridOverlay.style.display = 'block';
+      gridOverlay.style.pointerEvents = 'auto';
+      toggleGridBtn.textContent = '隱藏區域網格';
+      renderGridOverlay(GRID_STEP_DEFAULT);
+
+    }
+
     document.getElementById("resultsArea").innerHTML = `
-    <div class="analysis-item"><span>作畫總時長</span><span>${formatTime(totalSeconds)}</span></div>
-    <div class="analysis-item"><span>畫布填滿面積</span><span>${stats.coverage}%</span></div>
-    <div class="analysis-item"><span>暖色像素佔比</span><span>${stats.warmRatio}%</span></div>
-    <div class="analysis-item"><span>冷色像素佔比</span><span>${stats.coolRatio}%</span></div>
-    <div class="analysis-item"><span>空間重心 (左側)</span><span>${stats.leftWeight}%</span></div>
-    <div class="analysis-item"><span>筆路徑數量</span><span>${stats.strokeCount} 劃</span></div>
-    <div class="analysis-item" style="color:var(--terracotta); font-weight:700;"><span>平均下筆壓力</span><span>${stats.avgPressure}</span></div>
-    <div class="analysis-item" style="color:var(--terracotta); font-weight:700;"><span>猶豫路徑佔比</span><span>${stats.hesitationRatio}%</span></div>
-  `;
+      <div class="analysis-item"><span>作畫總時長</span><span>${formatTime(totalSeconds)}</span></div>
+      <div class="analysis-item"><span>畫布填滿面積</span><span>${stats.coverage}%</span></div>
+      <div class="analysis-item"><span>暖色像素佔比</span><span>${stats.warmRatio}%</span></div>
+      <div class="analysis-item"><span>冷色像素佔比</span><span>${stats.coolRatio}%</span></div>
+      <div class="analysis-item"><span>空間重心 (左側)</span><span>${stats.leftWeight}%</span></div>
+      <div class="analysis-item"><span>筆路徑數量</span><span>${stats.strokeCount} 劃</span></div>
+      <div class="analysis-item" style="color:var(--terracotta); font-weight:700;"><span>平均下筆壓力</span><span>${stats.avgPressure}</span></div>
+      <div class="analysis-item" style="color:var(--terracotta); font-weight:700;"><span>猶豫路徑佔比</span><span>${stats.hesitationRatio}%</span></div>
+      ${objHtml}
+    `;
   };
 
   async function callGemini(userInput = "") {
@@ -247,22 +430,26 @@
     const scenarioTitle = document.getElementById("scenarioTitle").textContent;
     const prompt = `你是一位藝術心理導師。情境：${scenarioTitle}。數據：填滿率${stats.coverage}%。可以先請使用者解釋一下畫作，請不要稱讚，針對數據提出一個深度反問，引導使用者自我察覺，限40字。`;
 
-    GeminiService.call({
-      systemPrompt: prompt, userMessage: userInput, chatHistory: chatLog,
+    await GeminiService.callChat({
+      systemPrompt: prompt,
+      userMessage: userInput,
+      chatHistory: chatLog,
       onLoading: (isLoading) => {
         const hist = document.getElementById("chatHistory");
         if (isLoading) {
           const div = document.createElement("div");
-          div.className = "msg msg-ai"; div.id = "ai-loading";
+          div.className = "msg msg-ai";
+          div.id = "ai-loading";
           div.innerHTML = `<div class="dots-loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
-          hist.appendChild(div); hist.scrollTop = hist.scrollHeight;
+          hist.appendChild(div);
+          hist.scrollTop = hist.scrollHeight;
         } else {
           const loader = document.getElementById("ai-loading");
           if (loader) loader.remove();
         }
       },
       onSuccess: (formattedText, rawText) => {
-        chatLog.push({ role: 'ai', text: rawText });
+        chatLog.push({role: 'ai', text: rawText});
         appendMsg('ai', formattedText);
       }
     });
@@ -270,8 +457,11 @@
 
   function appendMsg(role, text) {
     const h = document.getElementById("chatHistory");
-    const d = document.createElement("div"); d.className = `msg msg-${role}`;
-    d.innerHTML = text; h.appendChild(d); h.scrollTop = h.scrollHeight;
+    const d = document.createElement("div");
+    d.className = `msg msg-${role}`;
+    d.innerHTML = text;
+    h.appendChild(d);
+    h.scrollTop = h.scrollHeight;
   }
 
   document.getElementById("finishChapterBtn").onclick = () => {
@@ -281,7 +471,6 @@
     if (saveModal) {
       saveModal.style.display = "flex";
 
-      // 自動生成名稱
       const stats = AnalysisAPI.getPhysicalStats(ctx, canvas.width, canvas.height, drawingSteps);
       document.getElementById("workNameInput").value = AnalysisAPI.generateName(stats, null);
     }
@@ -293,7 +482,17 @@
     const totalSeconds = startTime ? Math.floor((Date.now() - startTime) / 1000) : 0;
 
     try {
-      // 🌟 關鍵修正：確保參數名稱與 StorageManager 一致
+      if (gridOverlay) {
+        gridOverlay.style.display = 'none';
+        gridVisible = false;
+        toggleGridBtn.textContent = '顯示區域網格';
+        gridOverlay.style.pointerEvents = 'none';
+        if (gridTooltip) gridTooltip.style.display = 'none';
+      }
+
+      const shapeResult = AnalysisAPI.detectShapes(ctx, canvas.width, canvas.height);
+      const timeRes = AnalysisAPI.analyzeObjectsWithTime(ctx, canvas.width, canvas.height, drawingSteps);
+
       StorageManager.saveWork({
         dataUrl: canvas.toDataURL(),
         chatLog: chatLog,
@@ -303,9 +502,12 @@
         storyTitle: currentScenarioTitle,
         level: currentChapterLevel,
         stats: AnalysisAPI.getPhysicalStats(ctx, canvas.width, canvas.height, drawingSteps),
+        shapes: shapeResult.shapes,
+        objectTime: timeRes.breakdown,
         name: name,
         description: desc
       });
+
       console.log("作品已成功存入 LocalStorage");
     } catch (e) {
       console.error("儲存過程發生錯誤:", e);
@@ -323,29 +525,53 @@
   document.getElementById("aiGenDescBtn").onclick = async () => {
     const btn = document.getElementById("aiGenDescBtn");
     const originalText = btn.textContent;
+    const workDescInput = document.getElementById("workDescInput");
+
+    // 檢查是否有對話紀錄，如果沒有就給予貼心提示
+    if (!chatLog || chatLog.length === 0) {
+      alert("請先在『與 AI 聊聊心情』中留下對話，AI 才能根據對話為你量身打造簡介喔！");
+      return;
+    }
+
     btn.textContent = "生成中...";
     btn.disabled = true;
 
+    // 將先前的對話紀錄串接起來，作為 AI 的參考背景
     const conversation = chatLog.map(m => `${m.role === 'ai' ? 'AI' : '我'}: ${m.text}`).join('\n');
-    const genPrompt = `你是一位溫柔、平易近人的藝術治療師。根據以下對話摘要，為使用者的畫作寫一段溫暖(以使用者的第一人稱視角)、具備心理洞察力的簡介（約 50 字內，不要有標題）。\n\n對話內容：\n${conversation}`;
+
+    // 設定針對兒童/少年的溫柔引導提示詞
+    const genPrompt = `你是一位溫柔且平易近人的兒童藝術治療師。請根據以下使用者與 AI 的對話內容，以「使用者的第一人稱視角（例如：我畫了...）」寫一段溫暖、充滿心理洞察力的作品簡介。
+限制條件：字數嚴格控制在 30-50 字之內，不要有任何標題（例如：不要寫 簡介：）、直接輸出內容即可。
+
+對話內容：
+${conversation}`;
 
     try {
-      await GeminiService.call({
+      await GeminiService.callChat({
         systemPrompt: genPrompt,
-        userMessage: "請幫我寫簡介。",
-        chatHistory: [],
+        userMessage: "請根據我們的對話，幫我的畫作寫一段 30-50 字的第一人稱心情簡介。",
+        chatHistory: [], // 這裡留空，因為我們已經把脈絡塞進 systemPrompt 了
+        onLoading: (isLoading) => {
+          if (isLoading) {
+            btn.textContent = "🪄 AI 正在閱讀對話...";
+            workDescInput.placeholder = "AI 正在根據你的心情故事編寫簡介...";
+          } else {
+            btn.textContent = originalText;
+            btn.disabled = false;
+          }
+        },
         onSuccess: (formatted, raw) => {
-          document.getElementById("workDescInput").value = raw.trim();
-          btn.textContent = originalText;
-          btn.disabled = false;
+          // 將 AI 生成的純文字填入情緒簡介的 textarea 中
+          workDescInput.value = raw.trim();
         },
         onError: (err) => {
-          alert("生成失敗：" + err);
+          alert("魔法棒失效了，生成失敗：" + err);
           btn.textContent = originalText;
           btn.disabled = false;
         }
       });
     } catch (e) {
+      console.error("生成簡介發生異常:", e);
       btn.textContent = originalText;
       btn.disabled = false;
     }
@@ -378,7 +604,6 @@
 
   function startPlayback() {
     if (currentStrokeIdx >= drawingSteps.length || (currentStrokeIdx === 0 && currentPointIdx === 0)) {
-      // 執行清空畫布，從第一筆開始播
       ctx.fillStyle = "#fffdfa";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       currentStrokeIdx = 0;
@@ -388,6 +613,16 @@
     isPlaying = true;
     document.getElementById("playbackIcon").textContent = "pause_circle";
     document.getElementById("playbackIndicator").style.display = "block";
+
+    if (gridOverlay) {
+      gridOverlay.style.display = 'none';
+      gridVisible = false;
+      toggleGridBtn.textContent = '顯示區域網格';
+      gridOverlay.style.pointerEvents = 'none';
+    }
+
+    if (gridTooltip) gridTooltip.style.display = 'none';
+
     playNext();
   }
 
@@ -397,8 +632,16 @@
     animationId = null;
 
     document.getElementById("playbackIcon").textContent = "play_circle";
-
     document.getElementById("playbackIndicator").style.display = "none";
+
+    if (gridOverlay) {
+      gridOverlay.style.display = 'none';
+      gridVisible = false;
+      toggleGridBtn.textContent = '顯示區域網格';
+      gridOverlay.style.pointerEvents = 'none';
+    }
+
+    if (gridTooltip) gridTooltip.style.display = 'none';
   }
 
   document.getElementById("playbackBtn").onclick = () => {
@@ -434,28 +677,64 @@
   };
 
   document.getElementById("clearBtn").onclick = () => {
-    if(confirm("確定清空？")) {
-      stopPlayback(true); initCanvas();
-      drawingSteps = []; history = []; startTime = null;
-      currentStrokeIdx = 0; currentPointIdx = 0;
+    if (confirm("確定清空？")) {
+      stopPlayback(true);
+      initCanvas();
+      drawingSteps = [];
+      history = [];
+      startTime = null;
+      currentStrokeIdx = 0;
+      currentPointIdx = 0;
       document.getElementById("analysisDisplay").style.display = "none";
+
+      if (gridOverlay) {
+        gridOverlay.style.display = 'none';
+        gridVisible = false;
+        toggleGridBtn.textContent = '顯示區域網格';
+      }
+
+      if (gridTooltip) gridTooltip.style.display = 'none';
     }
   };
 
-  document.getElementById("brushSize").oninput = (e) => { document.getElementById("brushSizeText").textContent = `${e.target.value} px`; };
-  document.getElementById("brushBtn").onclick = () => { isEraser = false; document.getElementById("brushBtn").classList.add("active-mode"); document.getElementById("eraserBtn").classList.remove("active-mode"); };
-  document.getElementById("eraserBtn").onclick = () => { isEraser = true; document.getElementById("eraserBtn").classList.add("active-mode"); document.getElementById("brushBtn").classList.remove("active-mode"); };
-  document.getElementById("startTalkBtn").onclick = () => { document.getElementById("aiModal").style.display = "flex"; document.getElementById("chatHistory").innerHTML = ""; callGemini(""); };
-  document.getElementById("sendMsgBtn").onclick = () => {
-    const input = document.getElementById("aiUserResponse");
-    const text = input.value.trim(); if (!text) return;
-    appendMsg('user', text); chatLog.push({ role: 'user', text: text });
-    input.value = ""; callGemini(text);
+  document.getElementById("brushSize").oninput = (e) => {
+    document.getElementById("brushSizeText").textContent = `${e.target.value} px`;
   };
 
-  window.onload = () => { initCanvas(); loadContent(); };
+  document.getElementById("brushBtn").onclick = () => {
+    isEraser = false;
+    document.getElementById("brushBtn").classList.add("active-mode");
+    document.getElementById("eraserBtn").classList.remove("active-mode");
+  };
+
+  document.getElementById("eraserBtn").onclick = () => {
+    isEraser = true;
+    document.getElementById("eraserBtn").classList.add("active-mode");
+    document.getElementById("brushBtn").classList.remove("active-mode");
+  };
+
+  document.getElementById("startTalkBtn").onclick = () => {
+    document.getElementById("aiModal").style.display = "flex";
+    document.getElementById("chatHistory").innerHTML = "";
+    callGemini("");
+  };
+
+  document.getElementById("sendMsgBtn").onclick = () => {
+    const input = document.getElementById("aiUserResponse");
+    const text = input.value.trim();
+    if (!text) return;
+
+    appendMsg('user', text);
+    chatLog.push({ role: 'user', text: text });
+    input.value = "";
+    callGemini(text);
+  };
+
+  window.onload = () => {
+    initCanvas();
+    loadContent();
+    initGridOverlay();
+  };
 </script>
 </body>
-
 </html>
-

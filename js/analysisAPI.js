@@ -16,6 +16,7 @@ export const AnalysisAPI = {
                 if (r > b) warmPixels++;
             }
         }
+
         const coverage = ((paintedPixels / (width * height)) * 100).toFixed(1);
         const warmRatio = paintedPixels > 0 ? Math.round((warmPixels / paintedPixels) * 100) : 0;
 
@@ -29,7 +30,6 @@ export const AnalysisAPI = {
                 if (idx > 0) {
                     const prev = stroke.points[idx - 1];
                     const dist = Math.sqrt(Math.pow(p.x - prev.x, 2) + Math.pow(p.y - prev.y, 2));
-                    // 假設採樣頻率下，位移小於 1.5 像素視為停頓猶豫
                     if (dist < 1.5) hesitationPoints++;
                 }
             });
@@ -79,14 +79,26 @@ export const AnalysisAPI = {
                 const idx = my * mapW + mx;
                 if (binaryMap[idx] === 1 && labels[idx] === 0) {
                     labelId++;
-                    const region = { minX: mx, minY: my, maxX: mx, maxY: my, pixels: 0, sumX: 0, sumY: 0 };
+                    const region = {
+                        id: labelId,
+                        minX: mx,
+                        minY: my,
+                        maxX: mx,
+                        maxY: my,
+                        pixels: 0,
+                        sumX: 0,
+                        sumY: 0
+                    };
+
                     const stack = [idx];
                     while (stack.length > 0) {
                         const ci = stack.pop();
                         if (labels[ci] !== 0) continue;
+
                         labels[ci] = labelId;
                         const cy = Math.floor(ci / mapW);
                         const cx = ci % mapW;
+
                         region.pixels++;
                         region.sumX += cx;
                         region.sumY += cy;
@@ -99,17 +111,18 @@ export const AnalysisAPI = {
                             ci - 1, ci + 1,
                             ci - mapW, ci + mapW
                         ];
+
                         for (const ni of neighbors) {
                             if (ni >= 0 && ni < binaryMap.length && binaryMap[ni] === 1 && labels[ni] === 0) {
                                 const nx = ni % mapW;
                                 const ny = Math.floor(ni / mapW);
-
                                 if (Math.abs(nx - cx) <= 1 && Math.abs(ny - cy) <= 1) {
                                     stack.push(ni);
                                 }
                             }
                         }
                     }
+
                     if (region.pixels >= 15) {
                         regions.push(region);
                     }
@@ -118,7 +131,6 @@ export const AnalysisAPI = {
         }
 
         const shapes = [];
-        const detected = new Set();
 
         for (const r of regions) {
             const w = r.maxX - r.minX + 1;
@@ -131,45 +143,153 @@ export const AnalysisAPI = {
 
             let shape = null;
 
-            // 房子偵測：下方矩形 + 上方三角形 → 重心偏下，填充率中等
             if (h > w * 0.8 && fillRatio > 0.25 && fillRatio < 0.65 && relCentroidY > 0.55) {
                 shape = { type: 'house', label: '🏠 房子', confidence: fillRatio };
-            }
-            // 人物偵測：高度 > 寬度 × 1.8，填充率低到中
-            else if (aspectRatio < 0.6 && h > 8 && fillRatio > 0.15 && fillRatio < 0.55) {
+            } else if (aspectRatio < 0.6 && h > 8 && fillRatio > 0.15 && fillRatio < 0.55) {
                 shape = { type: 'person', label: '👤 人物', confidence: fillRatio };
-            }
-            // 圓形偵測：長寬比接近 1，填充率高
-            else if (aspectRatio > 0.7 && aspectRatio < 1.4 && fillRatio > 0.55) {
+            } else if (aspectRatio > 0.7 && aspectRatio < 1.4 && fillRatio > 0.55) {
                 shape = { type: 'circle', label: '🔴 圓形', confidence: fillRatio };
-            }
-            // 三角形偵測：重心偏下，填充率 0.3~0.6
-            else if (fillRatio > 0.25 && fillRatio < 0.58 && relCentroidY > 0.5) {
+            } else if (fillRatio > 0.25 && fillRatio < 0.58 && relCentroidY > 0.5) {
                 shape = { type: 'triangle', label: '🔺 三角形', confidence: fillRatio };
-            }
-            // 方形偵測：長寬比接近 1 或矩形，填充率高
-            else if (aspectRatio > 0.5 && aspectRatio < 2.0 && fillRatio > 0.5) {
+            } else if (aspectRatio > 0.5 && aspectRatio < 2.0 && fillRatio > 0.5) {
                 shape = { type: 'square', label: '⬛ 方形', confidence: fillRatio };
-            }
-            // 其他有形物件
-            else if (r.pixels > 30) {
+            } else if (r.pixels > 30) {
                 shape = { type: 'object', label: '🎯 物件', confidence: fillRatio };
             }
 
-            if (shape && !detected.has(shape.type)) {
-                detected.add(shape.type);
+            if (shape) {
+                shape.region = {
+                    id: r.id,
+                    minX: r.minX,
+                    minY: r.minY,
+                    maxX: r.maxX,
+                    maxY: r.maxY,
+                    centroidMapX: centroidX,
+                    centroidMapY: centroidY,
+                    pixels: r.pixels
+                };
                 shapes.push(shape);
             }
         }
 
-        // 如果沒有辨識出任何形狀
         if (shapes.length === 0) {
-            shapes.push({ type: 'freeform', label: '🌊 自由風格', confidence: 0 });
+            shapes.push({ type: 'freeform', label: '🌊 自由風格', confidence: 0, region: null });
         }
+
+        const pixelRegions = regions.map(r => {
+            return {
+                id: r.id,
+                minX: r.minX * step,
+                minY: r.minY * step,
+                maxX: Math.min(width, (r.maxX + 1) * step),
+                maxY: Math.min(height, (r.maxY + 1) * step),
+                pixels: r.pixels,
+                centroidX: (r.sumX / r.pixels) * step,
+                centroidY: (r.sumY / r.pixels) * step
+            };
+        });
 
         return {
             shapes: shapes,
-            regionCount: regions.length
+            regionCount: regions.length,
+            regions: pixelRegions,
+            map: { step, mapW, mapH, labels }
+        };
+    },
+
+    /**
+     * 只輸出四類：人物 / 頭部 / 身體 / 背景
+     */
+    analyzeObjectsWithTime(ctx, width, height, drawingSteps) {
+        const shapeResult = this.detectShapes(ctx, width, height);
+        const regions = shapeResult.regions || [];
+        const shapes = shapeResult.shapes || [];
+
+        const personShapes = shapes.filter(sh => sh.type === 'person' && sh.region);
+
+        const stats = {
+            person: { label: '人物', seconds: 0, points: 0, totalPressure: 0 },
+            head: { label: '頭部', seconds: 0, points: 0, totalPressure: 0 },
+            body: { label: '身體', seconds: 0, points: 0, totalPressure: 0 },
+            background: { label: '背景', seconds: 0, points: 0, totalPressure: 0 }
+        };
+
+        function findRegionForPoint(px, py) {
+            for (const r of regions) {
+                if (px >= r.minX && px < r.maxX && py >= r.minY && py < r.maxY) {
+                    return r;
+                }
+            }
+            return null;
+        }
+
+        function findPersonShapeByRegionId(regionId) {
+            return personShapes.find(sh => sh.region.id === regionId) || null;
+        }
+
+        drawingSteps.forEach(stroke => {
+            for (let i = 0; i < stroke.points.length; i++) {
+                const p = stroke.points[i];
+                const next = stroke.points[i + 1];
+                const dt = next ? Math.max(1, (next.t - p.t)) : 16;
+                const sec = dt / 1000;
+                const pressure = (p.pressure || 0.5);
+
+                const region = findRegionForPoint(p.x, p.y);
+
+                if (!region) {
+                    stats.background.seconds += sec;
+                    stats.background.points += 1;
+                    stats.background.totalPressure += pressure;
+                    continue;
+                }
+
+                const personShape = findPersonShapeByRegionId(region.id);
+
+                if (personShape) {
+                    stats.person.seconds += sec;
+                    stats.person.points += 1;
+                    stats.person.totalPressure += pressure;
+
+                    const h = region.maxY - region.minY;
+                    const headEndY = region.minY + Math.max(1, Math.floor(h * 0.35));
+
+                    if (p.y < headEndY) {
+                        stats.head.seconds += sec;
+                        stats.head.points += 1;
+                        stats.head.totalPressure += pressure;
+                    } else {
+                        stats.body.seconds += sec;
+                        stats.body.points += 1;
+                        stats.body.totalPressure += pressure;
+                    }
+                } else {
+                    stats.background.seconds += sec;
+                    stats.background.points += 1;
+                    stats.background.totalPressure += pressure;
+                }
+            }
+        });
+
+        const totalSeconds = stats.person.seconds + stats.background.seconds;
+
+        const formatItem = (item) => ({
+            label: item.label,
+            seconds: Math.round(item.seconds * 10) / 10,
+            percent: totalSeconds > 0 ? Math.round((item.seconds / totalSeconds) * 100) : 0,
+            avgPressure: item.points > 0 ? (item.totalPressure / item.points).toFixed(2) : "0.00"
+        });
+
+        return {
+            totalSeconds: Math.round(totalSeconds * 10) / 10,
+            breakdown: [
+                formatItem(stats.person),
+                formatItem(stats.head),
+                formatItem(stats.body),
+                formatItem(stats.background)
+            ],
+            shapes: shapeResult.shapes,
+            regionCount: shapeResult.regionCount
         };
     },
 
@@ -182,17 +302,14 @@ export const AnalysisAPI = {
         const shapes = shapeResult ? shapeResult.shapes : [];
         const shapeTypes = shapes.map(s => s.type);
 
-        // 溫度描述詞
         const tempWords = warmRatio > 70 ? ['溫暖的', '熾熱的', '陽光下的']
             : warmRatio > 40 ? ['柔和的', '微光中的', '黃昏時的']
                 : ['沉靜的', '涼爽的', '月光下的'];
 
-        // 密度描述詞
         const densityWords = coverage > 50 ? ['繁盛', '填滿', '豐盈']
             : coverage > 20 ? ['漫步', '散落', '呢喃']
                 : ['幾筆', '低語', '輕觸'];
 
-        // 形狀主題詞
         let themeWords = ['風景'];
         if (shapeTypes.includes('person')) themeWords = ['身影', '行者', '旅人'];
         else if (shapeTypes.includes('house')) themeWords = ['家屋', '小鎮', '歸處'];
@@ -205,5 +322,4 @@ export const AnalysisAPI = {
         const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
         return `${pick(tempWords)}${pick(themeWords)}${pick(densityWords)}`;
     }
-
 };

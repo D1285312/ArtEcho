@@ -1,7 +1,7 @@
 :root {
   --paper: #f6efe3;
   --ink: #1a2229;
-  --moss: #2f5d4f;
+  --moss: rgba(47, 93, 79, 0.75);
   --terracotta: #c66b3d;
   --sand: #e8d6b5;
   --mist: #f9f3ea;
@@ -45,6 +45,7 @@ header.site-header {
   margin-bottom: 22px;
   backdrop-filter: blur(10px);
 }
+
 
 .nav-wrap {
   border: 1px solid var(--line);
@@ -229,6 +230,384 @@ h3 {
   background: #f8e0d2;
   border-color: #e6b89c;
 }
+/*=======================================個人畫廊======================================*/
+
+/* ==========================================================================
+   區塊二：畫廊卡片與佈置板互動細節 (compa.css 獨有)
+   ========================================================================== */
+/* 作品清單中「已選取」的狀態 */
+.work-card.is-placed {
+  opacity: 0.4;
+  filter: grayscale(100%); /* 變灰色 */
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* 移除作品按鈕 */
+.remove-work-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  background: #ff6b6b;
+  color: white;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  z-index: 100;
+}
+
+.placed-work:hover .remove-work-btn {
+  opacity: 1;
+}
+
+.remove-work-btn:hover {
+  background: #fa5252;
+  transform: scale(1.1);
+}
+
+/* 讓正在被拖放的作品層級最高與縮放效果 */
+.placed-work:active {
+  z-index: 999 !important;
+}
+
+.is-dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.card-img-wrap {
+  width: 100%;
+  aspect-ratio: 1/1;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+/* ---- 畫廊卡片文字與標籤增強 ---- */
+.work-name {
+  margin: 8px 0 4px;
+  font-family: "Noto Serif TC", "Microsoft JhengHei", serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.shape-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 6px 0;
+}
+
+.shape-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(47, 93, 79, 0.08);
+  border: 1px solid rgba(47, 93, 79, 0.15);
+  font-size: 0.78rem;
+  color: var(--moss);
+  white-space: nowrap;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: #5a6b6a;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+/*=========================畫廊結束====================*/
+
+/*===================================個人資料夾=======================================*/
+
+/* ==========================================================================
+   區塊三：資料夾列表與故事章節管理 (compa.css 獨有)
+   ========================================================================== */
+.folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.folder-card {
+  border: 1.5px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(145deg, #fffdf8, #faf3e6);
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+}
+
+.folder-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px -10px var(--shadow);
+}
+
+.folder-cover {
+  position: relative;
+  height: 160px;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--moss), rgba(47, 93, 79, 0.75));
+}
+
+.folder-cover-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  width: 100%;
+  height: 100%;
+}
+
+.folder-cover-grid img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.85;
+}
+
+.folder-cover-single {
+  width: 100%;
+  height: 100%;
+}
+
+.folder-cover-single img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.85;
+}
+
+.folder-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+
+.folder-icon {
+  position: absolute;
+  bottom: 10px;
+  left: 12px;
+  font-size: 1.6rem;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
+}
+
+.folder-info {
+  padding: 14px 16px;
+}
+
+.folder-info h3 {
+  font-family: "Noto Serif TC", serif;
+  font-size: 1.1rem;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+
+.folder-info p {
+  font-size: 0.85rem;
+  color: #5a6b6a;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.progress-bar {
+  height: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 2px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--moss), var(--terracotta));
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+/* === 詳細頁面（故事內頁） === */
+.detail-view {
+  display: none;
+}
+
+.detail-view.active {
+  display: block;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fffaf2;
+  color: var(--ink);
+  padding: 8px 16px;
+  font-size: 0.92rem;
+  cursor: pointer;
+  margin-bottom: 16px;
+  transition: background 0.2s;
+}
+
+.back-btn:hover {
+  background: rgba(232, 214, 181, 0.35);
+}
+
+.detail-header {
+  text-align: center;
+  padding: 28px 20px;
+  background: linear-gradient(120deg, rgba(47, 93, 79, 0.92), rgba(31, 67, 58, 0.94));
+  color: #fdf8ef;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+
+.detail-header h2 {
+  font-family: "Noto Serif TC", serif;
+  font-size: 1.5rem;
+  margin: 0 0 6px;
+}
+
+.detail-header p {
+  font-size: 0.9rem;
+  margin: 0;
+  opacity: 0.85;
+}
+
+.chapter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.chapter-card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fffdf8;
+  overflow: hidden;
+  display: block;
+  min-height: 180px;
+}
+
+.chapter-body {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.chapter-body h3 {
+  font-family: "Noto Serif TC", serif;
+  font-size: 1.05rem;
+  color: var(--ink);
+  margin: 0;
+}
+
+.chapter-body .chapter-subtitle {
+  font-size: 0.82rem;
+  color: #7a8886;
+  margin: 0 0 4px;
+}
+
+.chapter-description {
+  font-size: 0.9rem;
+  color: #5a6b6a;
+  line-height: 1.6;
+  background: rgba(47, 93, 79, 0.04);
+  padding: 10px 14px;
+  border-left: 3px solid var(--moss);
+  border-radius: 4px;
+  margin: 10px 0;
+  font-style: italic;
+  word-wrap: break-word;
+}
+
+.chapter-download {
+  margin-top: auto;
+}
+
+@media (max-width: 620px) {
+  .chapter-card {
+    grid-template-columns: 1fr;
+  }
+  .chapter-card img {
+    height: 150px;
+  }
+}
+
+/* === 線上編輯狀態與輸入元件 === */
+.edit-btn { background:none; border:none; cursor:pointer; margin-left:8px; font-size:0.95rem }
+.editable-input { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:8px; font-size:1rem; }
+.editable-textarea { width:100%; min-height:80px; padding:8px; border:1px solid var(--line); border-radius:8px; font-size:0.95rem; }
+.edit-actions { display:flex; gap:8px; margin-top:8px; }
+.edit-save { background:var(--moss); color:white; border:none; padding:6px 10px; border-radius:8px; cursor:pointer; }
+.edit-cancel { background:#f3f3f3; border:1px solid var(--line); padding:6px 10px; border-radius:8px; cursor:pointer; }
+/*======================================個人資料夾===================================*/
+
+
+/*===========================================分析===========================================*/
+/* ==========================================================================
+   區塊四：群組分析與後台統計圖表樣式 (compa.css 獨有)
+   ========================================================================== */
+.group-analysis { display: grid; grid-template-columns: 1fr; gap:12px; margin-bottom:14px; }
+.group-summary { display: grid; grid-template-columns: repeat(2,1fr); gap:8px; }
+.group-summary .stat { background:#fff; padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.04); display:flex; justify-content:space-between; font-size:0.95rem; }
+
+/* ---- 趨勢圖表區塊外框 ---- */
+.trend-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-bottom:12px; }
+
+.chart-card {
+  background: #fffdf8;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.chart-card h3 {
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+  color: var(--moss);
+}
+
+/* 改為垂直列表：圖片在左、文字在右的數據縮圖卡 */
+.thumb-stats { display:flex; flex-direction:column; gap:10px; }
+.thumb-card { display:flex; gap:12px; align-items:flex-start; padding:10px; text-align:left; background:#fff; border-radius:8px; border:1px solid rgba(0,0,0,0.04); }
+.thumb-card img { width:96px; height:96px; object-fit:cover; border-radius:8px; flex-shrink:0; }
+.thumb-info { display:flex; flex-direction:column; gap:6px; }
+.thumb-info .thumb-title { font-weight:700; color:var(--ink); }
+.thumb-info .thumb-sub { font-size:0.85rem; color:#7a8886; }
+.thumb-info .thumb-desc { font-size:0.88rem; color:#5a6b6a; }
+.thumb-info .thumb-stats { font-size:0.82rem; color:#556; display:flex; gap:8px; flex-wrap:wrap; }
+
+/*==========================================分析結束========================================*/
+
 
 .gallery-grid {
   margin-top: 16px;
@@ -744,4 +1123,541 @@ video {
   .ticker-track {
     grid-template-columns: 1fr;
   }
+}
+
+/*====================測試新UI/UX================================*/
+
+/* ====================
+   首頁新版設計優化樣式
+   ==================== */
+
+/* 1. Hero 區塊 */
+/* 1. Hero 區塊 */
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #627C67; /* 設計圖的底色 */
+  padding: 40px 60px;
+  border-radius: 32px;
+  color: #fff;
+  box-shadow: none;
+}
+.hero-text {
+  flex: 1;
+}
+.hero-text h1 {
+  font-size: 2.2rem;
+  line-height: 1.4;
+  margin-bottom: 20px;
+}
+.hero-text p {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #E8F0EA;
+}
+.hero-image {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+.hero-image img {
+  width: 100%;
+  max-width: 450px;
+  height: auto;
+  display: block;
+
+  /* 🌟 1. 刪除原本的 mix-blend-mode: multiply; （因為你已經成功去背了！） */
+
+  /* 🌟 2. 加入這行 SVG/PNG 專屬的真實陰影，讓圖片立體浮出 */
+  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.2));
+
+  /* 保留原本的漂浮動畫 */
+  animation: float 6s ease-in-out infinite;
+}
+
+.ticker-illustration img {
+  height: 90px; /* 原本是 60px，放大一點讓細節更清楚 */
+  width: auto;
+  display: block;
+  animation: none !important; /* 確保絕對不會有上下浮動的動畫 */
+}
+
+/* 加上漂浮動畫，增加療癒感 */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+/* 2. 三步驟卡片區塊 */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-top: 30px;
+}
+.step-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: #FAFAF7;
+  padding: 24px;
+  /* 🌟 替換為手繪紙張邊框與陰影 */
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  border: 2px solid #E8EBE6;
+  box-shadow: 2px 4px 12px rgba(0,0,0,0.02);
+}
+.step-icon {
+  width: 48px;
+  height: 48px;
+  background: #F3EBE3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  /* 🌟 將原本完美的圓形替換為稍微不規則的手繪圓圈 */
+  border-radius: 255px 50px 225px 50px / 50px 225px 50px 255px;
+  border: 1px solid #D1D5CD;
+}
+.step-icon img {
+  width: 24px;
+  height: 24px;
+}
+.step-content h3 {
+  font-size: 1.1rem;
+  color: #2F5D4F;
+  margin-bottom: 8px;
+}
+.step-content p {
+  font-size: 0.95rem;
+  color: #666;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* 3. 溫柔提醒區塊 */
+.ticker-banner {
+  display: flex;
+  align-items: center;
+  background: #F5F7F3;
+  padding: 20px 30px;
+  margin-top: 30px;
+  position: relative;
+  /* 🌟 替換為手繪紙張邊框與陰影 */
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  border: 2px solid #E8EBE6;
+  box-shadow: 2px 4px 12px rgba(0,0,0,0.02);
+}
+.ticker-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  padding: 0 40px;
+}
+.ticker-quote-mark {
+  font-size: 3rem;
+  font-family: serif;
+  color: #A3B5AA;
+  line-height: 1;
+  margin-top: -10px;
+}
+.ticker-text-wrapper h3 {
+  color: #627C67;
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+}
+#careTickerText {
+  color: #4A4A4A;
+  font-size: 1rem;
+  transition: opacity 0.3s ease;
+}
+.ticker-illustration img {
+  height: 60px;
+  width: auto;
+}
+.ticker-arrow {
+  background: transparent;
+  border: none;
+  color: #A3B5AA;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.ticker-arrow:hover {
+  color: #627C67;
+}
+
+/* 4. 資源區塊 */
+.resources-section {
+  margin-top: 40px;
+}
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #627C67;
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+}
+.section-header h2 {
+  color: #2F5D4F;
+  font-size: 1.4rem;
+}
+.view-more-btn {
+  background: transparent;
+  border: 1px solid #D1D5CD;
+  color: #627C67;
+  padding: 6px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.resource-card {
+  display: flex;
+  background: #FAFAF7;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 0;
+}
+.resource-poster {
+  width: 40%;
+  background: #EAEAEA;
+}
+.resource-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.resource-info {
+  width: 60%;
+  padding: 40px;
+}
+.resource-info h4 {
+  font-size: 1.2rem;
+  color: #4A4A4A;
+  margin-bottom: 12px;
+}
+.checkmark-list {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+.checkmark-list li {
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 12px;
+  color: #666;
+}
+.checkmark-list li::before {
+  content: "☑"; /* 簡單的打勾符號，可用圖片替代 */
+  position: absolute;
+  left: 0;
+  color: #83A691;
+  font-size: 1.2rem;
+}
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #EAF0EC;
+  color: #627C67;
+  text-decoration: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  width: 100%;
+}
+.download-icon {
+  font-size: 1.2rem;
+}
+
+/* 🌟 新增：手繪 SVG 全域樣式設定 */
+svg.hand-drawn {
+  stroke: #2F5D4F;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+/* RWD 手機版微調 */
+@media (max-width: 920px) {
+  .hero { flex-direction: column; padding: 30px; }
+  .hero-image { margin-top: 20px; }
+  .steps-grid { grid-template-columns: 1fr; }
+  .resource-card { flex-direction: column; }
+  .resource-poster, .resource-info { width: 100%; }
+}
+
+/* ==========================================================================
+   ArtEcho 多維藝術共生空間 - 首頁內嵌動態畫廊樣式
+   ========================================================================== */
+
+#gallery-zone-wrapper {
+  --primary: #00bcd4;
+  --bg-fish: radial-gradient(circle at 50% 10%, rgba(255,255,255,0.1) 0%, transparent 50%), linear-gradient(180deg, #054d74 0%, #022e47 100%);
+  --bg-butterfly: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.4) 0%, transparent 40%), linear-gradient(135deg, #f1f8e9 0%, #dcedc8 100%);
+  --bg-jellyfish: radial-gradient(circle at 50% 50%, rgba(103,58,183,0.2) 0%, transparent 70%), linear-gradient(180deg, #1a237e 0%, #0d1137 100%);
+}
+
+#selector-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.98);
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.selector-box {
+  display: flex;
+  gap: 20px;
+}
+
+.selector-box .option {
+  padding: 25px;
+  border-radius: 20px;
+  border: 2px solid #eee;
+  cursor: pointer;
+  text-align: center;
+  width: 120px;
+  background: white;
+  transition: 0.3s;
+  color: #333;
+}
+
+.selector-box .option:hover {
+  border-color: #00bcd4;
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+#gallery-nav {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  gap: 20px;
+}
+
+.gallery-section .nav-btn {
+  padding: 12px 30px;
+  border-radius: 40px;
+  border: none;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: 0.3s;
+  border: 1px solid rgba(255,255,255,0.3);
+  font-size: 15px;
+}
+
+.gallery-section .nav-btn:hover {
+  background: rgba(255,255,255,0.3);
+  transform: translateY(-2px);
+}
+
+.gallery-section .nav-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
+.delete-creature-btn {
+  background: rgba(191, 52, 52, 0.78);
+  border-color: rgba(255,255,255,0.45);
+  display: none;
+}
+
+.delete-creature-btn.is-visible {
+  display: inline-flex;
+  align-items: center;
+}
+
+.delete-creature-btn:not(:disabled):hover {
+  background: rgba(168, 36, 36, 0.9);
+}
+
+#drawing-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  z-index: 500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+#canvas-outer-container {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#canvas-scroll-lock {
+  width: 600px;
+  height: 450px;
+  overflow: visible;
+  border-radius: 16px 16px 0 0;
+  background: #fff;
+  position: relative;
+}
+
+#drawCanvas {
+  background: #fff;
+  cursor: crosshair;
+  border-radius: 16px 16px 0 0;
+  width: 600px;
+  height: 450px;
+}
+
+#side-tools {
+  position: absolute;
+  right: -75px;
+  top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+}
+
+#side-tools input[type="color"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 50px;
+  height: 50px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+#side-tools input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+#side-tools input[type="color"]::-webkit-color-swatch { border: 4px solid white; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+#side-tools input[type="color"]::-moz-color-swatch { border: 4px solid white; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+
+.tool-icon {
+  width: 50px;
+  height: 50px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  transition: 0.2s;
+  border: none;
+}
+
+.tool-icon:hover { transform: scale(1.1); }
+.tool-icon.active { background: #00bcd4; color: white; }
+
+.slider-wrapper {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+}
+
+#sizeSlider {
+  -webkit-appearance: slider-vertical;
+  width: 8px;
+  height: 100px;
+  cursor: pointer;
+}
+
+#drawing-controls {
+  width: 100%;
+  padding: 15px 0;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #eee;
+  border-radius: 0 0 16px 16px;
+}
+
+#feedback-toast {
+  position: absolute;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  background: white;
+  padding: 15px 40px;
+  border-radius: 50px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  opacity: 0;
+  transition: 0.5s;
+  pointer-events: none;
+  font-weight: 500;
+  color: #333;
+}
+
+#feedback-toast.show { opacity: 1; }
+
+#naming-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  z-index: 600;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.naming-box {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+.naming-box input {
+  display: block;
+  width: 250px;
+  padding: 12px;
+  margin: 20px auto;
+  border: 2px solid #eee;
+  border-radius: 10px;
+  font-size: 18px;
+  text-align: center;
+  color: #333;
+}
+
+.naming-box input:focus {
+  border-color: #00bcd4;
+  outline: none;
 }

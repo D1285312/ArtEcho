@@ -8,31 +8,62 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="CSS/styles.css">
+  <link rel="stylesheet" href="CSS/story.css">
+  <script src="js/authGuard.js"></script>
 </head>
 <body>
-  <div class="page-shell">
-    <header class="site-header reveal">
-      <nav class="nav-wrap" aria-label="主要導覽">
-        <a class="brand" href="index.html"><span class="brand-dot" aria-hidden="true"></span>ArtEcho</a>
-        <div class="nav-links">
-            <a class="nav-btn" href="index.html">主頁</a>
-            <a class="nav-btn" href="Gallery.html">個人雲端藝術庫</a>
-            <a class="nav-btn active" href="Story.html">劇情繪畫</a>
-            <a class="nav-btn" href="Cloud_space.html">公開藝術畫廊</a>
-            <a class="nav-btn" href="login.html">登入</a>
-        </div>
-      </nav>
-    </header>
-    <main>
-      <section class="panel reveal delay-1">
-        <h1 class="page-title">選擇繪圖劇情</h1>
-        <p class="page-subtitle">選擇一個情境故事，進入作畫空間描繪你當下的感受與情緒。每個劇情都是一次自我對話的機會。</p>
+<div class="page-shell">
+  <header class="site-header reveal">
+    <nav class="nav-wrap" aria-label="主要導覽">
+      <a class="brand" href="index.html"><span class="brand-dot" aria-hidden="true"></span>ArtEcho</a>
+      <div class="nav-links">
+        <a class="nav-btn" href="index.html">主頁</a>
+        <a class="nav-btn" href="Gallery.html">個人雲端藝術庫</a>
+        <a class="nav-btn active" href="Story.html">劇情繪畫</a>
+        <a class="nav-btn" href="Cloud_space.html">公開藝術畫廊</a>
+        <a class="nav-btn" href="login.html">登入</a>
+      </div>
+    </nav>
+  </header>
+  <main>
+    <section class="story-hero-banner reveal delay-1">
+      <div class="banner-text-box">
+        <h1 class="story-title">
+          <span class="text-green">選擇繪圖</span><span class="text-orange">劇情</span>
+        </h1>
+        <p class="story-subtitle">
+          選擇一個情境故事，進入你專屬的繪圖冒險世界！<br>
+          你也可以利用 <span class="text-orange-bold">AI</span> 建立專屬於你的全新旅程。
+        </p>
+      </div>
+      <img src="images/story_banner.png" alt="畫畫的女孩" class="banner-illustration">
+    </section>
 
-        <div id="scenarioGrid" class="scenario-grid" aria-live="polite"></div>
-      </section>
-    </main>
-  </div>
+    <section class="panel reveal delay-1 solid-border">
+      <h2 style="font-size: 1.3rem; color: var(--moss); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        👑 官方精選劇情
+      </h2>
+      <div id="officialGrid" class="scenario-grid" aria-live="polite"></div>
+    </section>
 
-<script src="js/Story.js"></script>
+    <section class="panel reveal delay-2 solid-border">
+      <h2 style="font-size: 1.3rem; color: var(--moss); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        ✍️ 我的專屬劇情
+      </h2>
+      <div id="myGrid" class="scenario-grid" aria-live="polite">
+      </div>
+    </section>
+
+    <section class="panel reveal delay-3 solid-border">
+      <h2 style="font-size: 1.3rem; color: var(--moss); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+        🌐 社群共享劇情
+      </h2>
+      <div id="sharedGrid" class="scenario-grid" aria-live="polite"></div>
+    </section>
+
+  </main>
+</div>
+
+<script type="module" src="js/Story.js"></script>
 </body>
 </html>

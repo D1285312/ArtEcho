@@ -1,90 +1,142 @@
-/**
- * ArtEcho Gemini AI 服務模組
- * 封裝了 API 呼叫邏輯，並內建 Markdown 渲染工具
- */
+// geminiService.js
+
+function formatMarkdown(text) {
+    if (!text) return "";
+    let formatted = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+    formatted = formatted.replace(/\n/g, '<br>');
+    return formatted;
+}
+
+function getApiBaseUrl() {
+    const isWebStormPreview = window.location.port === '63342';
+    return isWebStormPreview ? 'http://localhost:3001' : '';
+}
+
 export const GeminiService = {
-    /**
-     * API KEY 讀取邏輯
-     * 在 Vercel 部署環境中，會嘗試讀取系統變數
-     * 如果是純前端專案且未使用 Vite 等工具，import.meta.env 可能為 undefined
-     */
-    apiKey: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) 
-            ? import.meta.env.VITE_GEMINI_API_KEY 
-            : "", // 如果環境變數不存在，請在此處手動輸入本地測試金鑰（切記勿推送到 GitHub）
+// =========================
+// 聊天功能
+// =========================
+    async callChat({
+        systemPrompt,
+        userMessage,
+        chatHistory,
+        onLoading,
+        onSuccess,
+        onError
+    }) {
+        if (onLoading)
+            onLoading(true);
 
-    /**
-     * 格式化 Markdown 語法
-     * 將 **粗體** 轉換為 HTML 的 <b> 標籤
-     */
-    formatMarkdown(text) {
-        if (!text) return "";
-        // 1. 處理粗體
-        let formatted = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-        // 2. 處理換行
-        formatted = formatted.replace(/\n/g, '<br>');
-        return formatted;
-    },
+        try {
+            const fetchUrl = `${getApiBaseUrl()}/api/chat`;
+            console.log("聊天 API:", fetchUrl);
+            const response = await fetch(fetchUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    systemPrompt,
+                    userMessage,
+                    chatHistory
+                })
+            });
 
-    /**
-     * 核心呼叫函數
-     */
-    async call({ systemPrompt, userMessage, chatHistory, onLoading, onSuccess, onError }) {
-        if (!this.apiKey || this.apiKey === "YOUR_API_KEY") {
-            if (onError) onError("API Key 尚未設定，請檢查 Vercel 環境變數。");
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `伺服器錯誤: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (onLoading)
+            onLoading(false);
+        if (data.error) {
+            if (onError)
+                onError(data.error);
             return;
         }
 
-        if (onLoading) onLoading(true);
+        if (data.text) {
+            const formattedText = formatMarkdown(data.text);
+            if (onSuccess) {onSuccess(formattedText, data.text);
+            }
+        }
 
-        const contents = [
-            { role: "user", parts: [{ text: systemPrompt }] }
-        ];
+        } catch (err) {
+            console.error("聊天 API 異常:", err);
+            if (onLoading) onLoading(false);
+            if (onError) {
+                onError(err.message || "聊天 API 連線失敗");
+            }
+        }
+    },
 
-        // 建立對話歷史
-        chatHistory.forEach(m => {
-            contents.push({
-                role: m.role === 'ai' ? 'model' : 'user',
-                parts: [{ text: m.text }]
-            });
-        });
-
-        // 加入當前使用者訊息
-        const finalUserText = userMessage || "你好，我完成畫作了。";
-        contents.push({ role: "user", parts: [{ text: finalUserText }] });
-
-        try {
-            // 使用 gemini-1.5-flash 以確保穩定性與速度
-            const apiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`;
-
-            const response = await fetch(apiURL, {
+// =========================
+// 劇情生成
+// =========================
+async generateStory({
+    style,
+    feeling,
+    prompt,
+    onLoading,
+    onSuccess,
+    onError
+}) {
+    if (onLoading)
+        onLoading(true);
+    try {
+        const fetchUrl = `${getApiBaseUrl()}/api/story`;
+        console.log("故事 API:", fetchUrl);
+        const response =
+            await fetch(fetchUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: contents })
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    style,
+                    feeling,
+                    prompt
+                })
             });
+            if (!response.ok) {
+                const errorData =
+                    await response.json()
+                        .catch(() => ({}));
+                throw new Error(
+                    errorData.error ||
+                    `伺服器錯誤: ${response.status}`
+                );
+            }
 
             const data = await response.json();
-
-            if (onLoading) onLoading(false);
-
+            if (onLoading)
+                onLoading(false);
             if (data.error) {
-                if (onError) onError(data.error.message);
+                if (onError)
+                    onError(data.error);
                 return;
             }
 
-            if (data.candidates && data.candidates[0].content) {
-                const aiRawText = data.candidates[0].content.parts[0].text;
-
-                // 在回傳成功前，先進行格式化
-                const formattedText = this.formatMarkdown(aiRawText);
-
-                // 回傳格式化後的文字，以及原始文字(備用)
-                if (onSuccess) onSuccess(formattedText, aiRawText);
-            } else {
-                if (onError) onError("AI 未能生成回應，請稍後再試。");
+            if (data.story) {
+                if (onSuccess)
+                    onSuccess(data.story);
             }
+
         } catch (err) {
-            if (onLoading) onLoading(false);
-            if (onError) onError("網路連線異常，請檢查網路狀態。");
+            console.error(
+                "故事 API 異常:",
+                err
+            );
+            if (onLoading)
+                onLoading(false);
+            if (onError) {
+                onError(
+                    err.message ||
+                    "故事生成失敗"
+                );
+            }
         }
     }
 };

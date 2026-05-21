@@ -11,7 +11,7 @@ typings/
 # 環境變數與機密資訊 (Environment Variables / Secrets)
 # ------------------------------------------------------------------------------
 # 絕對不要上傳 .env 檔案，裡面包含你的 SMTP 密碼 [cite: 1]
-.env
+api/.env
 .env.local
 .env.development.local
 .env.test.local

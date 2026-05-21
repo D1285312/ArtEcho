@@ -1,0 +1,287 @@
+/* ==========================================================================
+   0. 全域背景：換成您自訂的圖片
+   ========================================================================== */
+body {
+    /* 將 'your-bg-pattern.png' 換成您想要的背景圖檔名 */
+    /* background-repeat: repeat 可以讓小圖案重複鋪滿整個背景 */
+    background-image:
+            url('../images/Dino.png'),
+            linear-gradient(145deg, var(--paper), var(--mist));
+    background-repeat: repeat, no-repeat;
+    background-size: auto, cover;
+    background-attachment: fixed, fixed;
+}
+
+/* ==========================================================================
+   1. 面板背景：換成您自訂的角落插圖
+   ========================================================================== */
+.panel {
+    background-color: #fffdf8;
+
+    /* 如果想在每個區塊的右下角放可愛的小插圖，改這裡的檔名 */
+    background-image: url('../images/Dino.png');
+    background-repeat: no-repeat;
+    background-position: bottom 20px right 20px;
+    background-size: 80px; /* 調整角落小圖的大小 */
+
+    border: 2px dashed #e4d5bc;
+    border-radius: 28px;
+    padding: 24px 30px;
+    box-shadow: 0 12px 36px -16px rgba(198, 107, 61, 0.12);
+    margin-bottom: 24px;
+}
+
+/* (保留您原本的其他 .panel h2, .scenario-card 等樣式，不用動) */
+
+/* ==========================================================================
+   6. 繪本風頂部橫幅 (Story Hero Banner) - 邊界漸層融合版
+   ========================================================================== */
+.story-hero-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #fcf9f2;
+    border: 2px solid #f0e6d3;
+    border-radius: 32px;
+    /* 注意：右邊 padding 設為 0，讓圖片可以完全貼齊右邊框 */
+    padding: 40px 0 40px 50px;
+    margin-bottom: 30px;
+    box-shadow: 0 12px 24px -10px rgba(198, 107, 61, 0.08);
+    overflow: hidden; /* 確保圖片不會超出圓角 */
+}
+
+/* 取消之前的白色漸層遮罩，讓文字直接顯示 */
+.story-hero-banner::before {
+    display: none;
+}
+
+.banner-text-box {
+    flex: 1;
+    z-index: 2;
+    max-width: 50%; /* 限制文字寬度 */
+}
+
+/* 右側插圖設定 */
+.banner-illustration {
+    display: block;
+    height: 280px; /* 根據您的圖片高度可以稍微調整 */
+    width: 50%; /* 讓圖片佔據右半邊 */
+    object-fit: cover; /* 讓圖片填滿它的空間 */
+    object-position: right center; /* 強制圖片靠右對齊 */
+
+    /* 🔥 魔法在這裡：使用 mask-image 讓圖片只有「左邊緣」呈現透明漸層 */
+    mask-image: linear-gradient(to right, transparent 0%, black 20%);
+}
+
+/* --- 手機版 RWD 調整 --- */
+@media (max-width: 768px) {
+    .story-hero-banner {
+        flex-direction: column;
+        padding: 30px 20px 0 20px; /* 下方 padding 歸零，讓圖片貼齊下方 */
+    }
+
+    .banner-text-box {
+        max-width: 100%;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .banner-illustration {
+        width: 100%;
+        height: 200px;
+        /* 手機版改為「上方邊緣」漸層融合 */
+        mask-image: linear-gradient(to bottom, transparent 0%, black 30%);
+    }
+}
+
+/* ==========================================================================
+   2. 手帳風面板 (Panel) - 厚實升級版
+   ========================================================================== */
+.panel {
+    background-color: #ffffff;
+    /* 保留您的右下角角落小圖 (檔名請自行確認) */
+    background-image: url('../images/pens.png');
+    background-repeat: no-repeat;
+    background-position: bottom 15px right 15px;
+    background-size: 80px;
+
+    /* 🔥 魔法：利用 inset 加一圈內圈底色，配合外層陰影，做出「厚卡紙」的感覺 */
+    box-shadow: 0 20px 40px rgba(110, 90, 70, 0.12), inset 0 0 0 8px #fffaf0;
+    border: 3px dashed #dcb888; /* 加粗一點的虛線 */
+    border-radius: 36px; /* 更圓潤的邊角 */
+    padding: 30px 35px;
+    margin-bottom: 35px;
+    position: relative;
+    z-index: 2; /* 確保浮在背景小恐龍之上 */
+}
+
+.panel h2 {
+    font-size: 1.5rem;
+    color: var(--moss);
+    border-bottom: 3px dotted #e8d6b5; /* 改成可愛的點點線 */
+    padding-bottom: 14px;
+    margin-bottom: 24px;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Override for specific panels: use same border style as story-hero-banner */
+.panel.solid-border {
+    border: 2px solid #f0e6d3;      /* 與 .story-hero-banner 相同的實線顏色與寬度 */
+    border-radius: 32px;            /* 與 hero 保持一致圓角 */
+    box-shadow: 0 12px 24px -10px rgba(198, 107, 61, 0.08); /* 與 hero 的陰影感覺相近 */
+    background-color: #fcf9f2;      /* 若需要，可套用與 hero 相近的底色（可選） */
+    /* 取消原本 .panel 的虛線（直接覆蓋 border 屬性即可） */
+}
+
+
+/* ==========================================================================
+   3. 繪本風故事卡片 (Scenario Card) - 拍立得/貼紙風格
+   ========================================================================== */
+.scenario-card {
+    background: #ffffff;
+    border-radius: 24px;
+    /* 🔥 把邊框變成粗粗的白邊，像拍立得或貼紙 */
+    border: 6px solid #ffffff;
+    /* 給卡片加上外框線與柔和的浮空陰影 */
+    box-shadow: 0 8px 24px rgba(120, 100, 80, 0.12), 0 0 0 1px rgba(220, 190, 150, 0.4);
+    padding: 0; /* 移除 padding，讓圖片直接碰到白邊 */
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+}
+
+.scenario-card:hover {
+    transform: translateY(-8px) rotate(2deg); /* 跳躍幅度加大一點點 */
+    box-shadow: 0 20px 36px rgba(47, 93, 79, 0.2), 0 0 0 1px rgba(220, 190, 150, 0.6);
+}
+
+.scenario-card.locked:hover {
+    transform: none;
+    box-shadow: 0 8px 24px rgba(120, 100, 80, 0.12), 0 0 0 1px rgba(220, 190, 150, 0.4);
+}
+
+.scenario-card-img {
+    border-radius: 16px 16px 0 0; /* 圖片只有上面有圓角，配合拍立得造型 */
+    height: 170px;
+    overflow: hidden;
+}
+
+.scenario-card-content {
+    background: #fcfaf5; /* 文字區塊給一點淡淡的米黃色 */
+    padding: 20px 16px 28px;
+    border-radius: 0 0 16px 16px;
+    position: relative;
+}
+
+.scenario-card-content h3 {
+    font-size: 1.15rem;
+    color: var(--ink);
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+/* --- [+] AI 生成新劇情 卡片樣式特別處理 --- */
+article[onclick="createNewScenario()"] {
+    border: 4px dashed #e58252 !important; /* 變成亮橘色虛線 */
+    background: #fff9f5 !important; /* 帶一點粉橘色的底色 */
+    border-radius: 24px !important;
+    padding: 24px !important;
+    box-shadow: 0 8px 24px rgba(229, 130, 82, 0.1) !important;
+}
+
+article[onclick="createNewScenario()"]:hover {
+    transform: scale(1.04) rotate(-2deg) !important;
+    background: #ffffff !important;
+    border-color: var(--moss) !important;
+    box-shadow: 0 20px 40px rgba(198, 107, 61, 0.2) !important;
+}
+
+/* ==========================================================================
+   7. 橫幅標題文字色彩補回 (Hero Banner Text)
+   ========================================================================== */
+.story-title {
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.8);
+}
+.text-green { color: #5c8465; }
+.text-orange { color: #e58252; }
+.text-orange-bold { color: #e58252; font-weight: bold; font-family: Arial, sans-serif; }
+.story-subtitle {
+    font-size: 1.1rem;
+    color: #4a5453;
+    line-height: 1.8;
+    margin: 0;
+    text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
+}
+
+/* ==========================================================================
+   8. 繪本風彈出視窗 (Modal / Popup)
+   ========================================================================== */
+.cute-modal-box {
+    background-color: #ffffff;
+    /* 延續面板的厚卡紙立體陰影 */
+    box-shadow: 0 20px 40px rgba(110, 90, 70, 0.15), inset 0 0 0 8px #fffaf0;
+    border: 3px dashed #dcb888;
+    border-radius: 36px;
+    padding: 45px 40px;
+    position: relative;
+    max-width: 480px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.cute-close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #fff1e6;
+    color: #c2693d;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cute-close-btn:hover {
+    background: #e58252;
+    color: white;
+    transform: scale(1.1) rotate(90deg); /* 懸停時會旋轉放大，很可愛 */
+}
+
+/* 圓潤Ｑ彈的按鈕 */
+.cute-option-btn {
+    font-size: 1.05rem;
+    font-weight: bold;
+    padding: 12px 24px;
+    border-radius: 999px;
+    background-color: #e58252;
+    color: #ffffff;
+    border: 2px solid #d47043;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 10px rgba(229, 130, 82, 0.2);
+    width: 100%;
+}
+
+.cute-option-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(229, 130, 82, 0.3);
+    background-color: #f09568;
+}
+
+/* 只有在 detail view active 時才把 folder title 變白 */
+h2#detailTitle {
+    color: #ffffff !important;
+}

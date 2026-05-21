@@ -1,0 +1,17 @@
+body {
+    /* 將 'your-bg-pattern.png' 換成您想要的背景圖檔名 */
+    /* background-repeat: repeat 可以讓小圖案重複鋪滿整個背景 */
+    background-image:
+            url('../images/paint.png'),
+            linear-gradient(145deg, var(--paper), var(--mist));
+    background-repeat: repeat, no-repeat;
+    background-size: auto, cover;
+    background-attachment: fixed, fixed;
+}
+
+/* 提高個人畫廊主面板的不透明度，確保文字與圖表清晰 */
+.panel.reveal.delay-1, .home-module.reveal.delay-3 {
+    background-color: #ffffff !important; /* 或者使用 #fffdf8 (手帳風格溫潤白) */
+    background-image: none !important;    /* 如果不想被底層小恐龍或背景圖透上來，可以加上這行 */
+    box-shadow: 0 20px 40px rgba(110, 90, 70, 0.15) !important; /* 增強陰影讓厚紙板立體感更明顯 */
+}
